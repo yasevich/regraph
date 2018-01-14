@@ -8,12 +8,14 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.CheckedTextView
+import android.widget.Toast
 
 private const val TAG_MAIN_FRAGMENT = "mainFragment"
 
-class MainActivity : AppCompatActivity(), MainFragment.EventListener {
+class MainActivity : AppCompatActivity(), MainFragment.EventListener, SwipeRefreshLayout.OnRefreshListener {
 
-    private val list: RecyclerView by lazy { findViewById<RecyclerView>(R.id.list) }
+    private val adapter = Adapter(this)
+
     private val swipe: SwipeRefreshLayout by lazy { findViewById<SwipeRefreshLayout>(R.id.swipe) }
 
     private lateinit var fragment: MainFragment
@@ -21,6 +23,10 @@ class MainActivity : AppCompatActivity(), MainFragment.EventListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        findViewById<RecyclerView>(R.id.list).adapter = adapter
+
+        swipe.setOnRefreshListener(this)
 
         if (savedInstanceState == null) {
             fragment = MainFragment()
@@ -46,11 +52,14 @@ class MainActivity : AppCompatActivity(), MainFragment.EventListener {
     }
 
     override fun onCurrencies(currencies: List<String>) {
-        list.adapter = Adapter(this).also { it.items = currencies }
+        adapter.items = currencies
     }
 
     override fun onRefused(error: CharSequence) {
-        //TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+    }
+    override fun onRefresh() {
+        fragment.requestCurrencies()
     }
 
     private class Adapter(private val context: Context) : RecyclerView.Adapter<Adapter.ViewHolder>() {
