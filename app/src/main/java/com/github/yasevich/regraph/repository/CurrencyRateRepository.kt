@@ -10,7 +10,7 @@ interface CurrencyRateRepository {
     /**
      * @return response, containing a set of all available currencies that could be requested from this repository
      */
-    fun getCurrencies(): RepositoryResponse<Set<String>>
+    fun getCurrencies(): RepositoryResponse<List<String>>
 
     /**
      * Gets rates from this repository. Repository must return a list of currency rates with base currency set to

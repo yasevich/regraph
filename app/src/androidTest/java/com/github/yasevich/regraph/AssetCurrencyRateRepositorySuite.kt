@@ -20,7 +20,7 @@ class AssetCurrencyRateRepositorySuite {
 
     @Test
     fun testCurrencies() {
-        val expected = setOf("USD", "EUR", "GBP", "AUD")
+        val expected = listOf("USD", "EUR", "GBP", "AUD")
         val actual = getRepository().getCurrencies().result
         assertEquals(expected, actual)
     }

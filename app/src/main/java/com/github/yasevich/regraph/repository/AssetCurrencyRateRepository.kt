@@ -19,7 +19,7 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
 
     private var second = 0
 
-    override fun getCurrencies(): RepositoryResponse<Set<String>> {
+    override fun getCurrencies(): RepositoryResponse<List<String>> {
         try {
             database.query(
                     "currencies",
@@ -30,7 +30,7 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
                     null,
                     null
             ).use {
-                val result = mutableSetOf<String>()
+                val result = mutableListOf<String>()
                 while (it.moveToNext()) {
                     result.add(it.getString(0))
                 }
