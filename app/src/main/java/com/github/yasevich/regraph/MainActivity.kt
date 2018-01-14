@@ -52,7 +52,10 @@ class MainActivity : AppCompatActivity(), MainFragment.EventListener, SwipeRefre
     }
 
     override fun onCurrencies(currencies: List<String>) {
-        adapter.items = currencies
+        with(adapter) {
+            items = currencies
+            notifyDataSetChanged()
+        }
     }
 
     override fun onRefused(error: CharSequence) {
