@@ -3,6 +3,8 @@ package com.github.yasevich.regraph
 import android.app.Application
 import android.os.Handler
 import android.os.Looper
+import com.github.yasevich.regraph.presenter.CurrencySelectionContract
+import com.github.yasevich.regraph.presenter.CurrencySelectionPresenter
 import com.github.yasevich.regraph.repository.AssetCurrencyRateRepository
 
 class App : Application() {
@@ -14,8 +16,8 @@ class App : Application() {
         instance = this
     }
 
-    fun createMainScreenPresenter(): MainScreenContract.Presenter =
-            MainScreenPresenter(AssetCurrencyRateRepository(this))
+    fun createMainScreenPresenter(): CurrencySelectionContract.Presenter =
+            CurrencySelectionPresenter(AssetCurrencyRateRepository(this))
 
     companion object {
         lateinit var instance: App

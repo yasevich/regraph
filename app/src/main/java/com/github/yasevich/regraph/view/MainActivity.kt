@@ -1,0 +1,113 @@
+package com.github.yasevich.regraph.view
+
+import android.os.Bundle
+import android.support.v4.widget.SwipeRefreshLayout
+import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.RecyclerView
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import android.widget.CheckedTextView
+import android.widget.Toast
+import com.github.yasevich.regraph.R
+import com.github.yasevich.regraph.presenter.CurrencySelectionContract
+import kotlinx.android.synthetic.main.activity_main.list
+import kotlinx.android.synthetic.main.activity_main.showRates
+import kotlinx.android.synthetic.main.activity_main.swipe
+
+private const val TAG_FRAGMENT_MAIN = "mainFragment"
+
+class MainActivity : AppCompatActivity(), CurrencySelectionContract.View, SwipeRefreshLayout.OnRefreshListener {
+
+    private val adapter = Adapter()
+
+    private val presenter: CurrencySelectionContract.Presenter by lazy { fragment.presenter }
+
+    private lateinit var fragment: MainFragment
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        list.adapter = adapter
+        swipe.setOnRefreshListener(this)
+
+        if (savedInstanceState == null) {
+            fragment = MainFragment()
+            supportFragmentManager.beginTransaction()
+                    .add(fragment, TAG_FRAGMENT_MAIN)
+                    .commit()
+        } else {
+            fragment = supportFragmentManager.findFragmentByTag(TAG_FRAGMENT_MAIN) as MainFragment
+        }
+
+        presenter.view = this
+        presenter.requestCurrencies()
+    }
+
+    override fun onDestroy() {
+        presenter.view = null
+        super.onDestroy()
+    }
+
+    override fun onCurrencies(currencies: List<Pair<String, Boolean>>) {
+        with(adapter) {
+            items = currencies
+            notifyDataSetChanged()
+        }
+    }
+
+    override fun onCurrenciesLoading(inProgress: Boolean) {
+        swipe.isRefreshing = inProgress
+    }
+
+    override fun onCurrenciesSelection(valid: Boolean) {
+        showRates.isEnabled = valid
+    }
+
+    override fun onCurrencySelectionChanged(currencies: List<Pair<String, Boolean>>, position: Int) {
+        with(adapter) {
+            items = currencies
+            notifyItemChanged(position)
+        }
+    }
+
+    override fun onError(textResId: Int) {
+        Toast.makeText(this, textResId, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onRefresh() {
+        presenter.requestCurrencies()
+    }
+
+    private inner class Adapter : RecyclerView.Adapter<ViewHolder>() {
+
+        var items: List<Pair<String, Boolean>> = emptyList()
+
+        private val inflater: LayoutInflater by lazy { LayoutInflater.from(this@MainActivity) }
+
+        override fun getItemCount(): Int = items.size
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            with(holder.textView) {
+                val item = items[position]
+                text = item.first
+                isChecked = item.second
+
+                setOnClickListener {
+                    if (isChecked) {
+                        presenter.removeSelectedCurrency(item.first)
+                    } else {
+                        presenter.addSelectedCurrency(item.first)
+                    }
+                }
+            }
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = ViewHolder(inflater, parent)
+    }
+
+    private class ViewHolder(inflater: LayoutInflater, parent: ViewGroup) :
+            RecyclerView.ViewHolder(inflater.inflate(android.R.layout.simple_list_item_checked, parent, false)) {
+        val textView: CheckedTextView = itemView as CheckedTextView
+    }
+}
