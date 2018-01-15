@@ -5,7 +5,7 @@ interface MainScreenContract {
     interface View {
         fun onInProgress(inProgress: Boolean)
         fun onCurrencies(currencies: List<String>)
-        fun onRefused(error: CharSequence)
+        fun onRefused(textResId: Int)
     }
 
     interface Presenter {

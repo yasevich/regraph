@@ -1,21 +1,16 @@
 package com.github.yasevich.regraph
 
-import android.support.v4.app.Fragment
 import com.github.yasevich.regraph.model.AppError
 import com.github.yasevich.regraph.model.AppStatus
 import com.github.yasevich.regraph.repository.RepositoryResponse
 import com.github.yasevich.regraph.util.async
 import com.github.yasevich.regraph.util.mainThread
 
-class MainFragment: Fragment(), MainScreenContract.Presenter {
+class MainScreenPresenter : MainScreenContract.Presenter {
 
     override var view: MainScreenContract.View? = null
 
     private var inProgress: Boolean = false
-
-    init {
-        retainInstance = true
-    }
 
     override fun requestCurrencies() {
         if (inProgress) {
@@ -54,6 +49,6 @@ class MainFragment: Fragment(), MainScreenContract.Presenter {
             AppError.INVALID_CURRENCY -> R.string.app_error_invalid_currency
             AppError.TECHNICAL_ERROR -> R.string.app_error_technical_error
         }
-        view?.onRefused(getText(resId))
+        view?.onRefused(resId)
     }
 }

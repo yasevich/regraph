@@ -10,6 +10,7 @@ class App : Application() {
 
     val handler: Handler by lazy { Handler(Looper.getMainLooper()) }
     val repository: CurrencyRateRepository by lazy { AssetCurrencyRateRepository(this) }
+    val mainScreenPresenter: MainScreenContract.Presenter by lazy { MainScreenPresenter() }
 
     override fun onCreate() {
         super.onCreate()

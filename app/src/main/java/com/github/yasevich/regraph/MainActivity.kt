@@ -10,15 +10,13 @@ import android.view.ViewGroup
 import android.widget.CheckedTextView
 import android.widget.Toast
 
-private const val TAG_MAIN_FRAGMENT = "mainFragment"
-
 class MainActivity : AppCompatActivity(), MainScreenContract.View, SwipeRefreshLayout.OnRefreshListener {
 
     private val adapter = Adapter(this)
 
     private val swipe: SwipeRefreshLayout by lazy { findViewById<SwipeRefreshLayout>(R.id.swipe) }
 
-    private lateinit var presenter: MainScreenContract.Presenter
+    private val presenter: MainScreenContract.Presenter = App.instance.mainScreenPresenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,17 +25,6 @@ class MainActivity : AppCompatActivity(), MainScreenContract.View, SwipeRefreshL
         findViewById<RecyclerView>(R.id.list).adapter = adapter
 
         swipe.setOnRefreshListener(this)
-
-        if (savedInstanceState == null) {
-            presenter = MainFragment().also {
-                supportFragmentManager
-                        .beginTransaction()
-                        .add(it, TAG_MAIN_FRAGMENT)
-                        .commit()
-            }
-        } else {
-            presenter = supportFragmentManager.findFragmentByTag(TAG_MAIN_FRAGMENT) as MainFragment
-        }
 
         presenter.view = this
         presenter.requestCurrencies()
@@ -59,9 +46,10 @@ class MainActivity : AppCompatActivity(), MainScreenContract.View, SwipeRefreshL
         }
     }
 
-    override fun onRefused(error: CharSequence) {
-        Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+    override fun onRefused(textResId: Int) {
+        Toast.makeText(this, textResId, Toast.LENGTH_SHORT).show()
     }
+
     override fun onRefresh() {
         presenter.requestCurrencies()
     }
