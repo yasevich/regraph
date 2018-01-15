@@ -7,9 +7,9 @@ import com.github.yasevich.regraph.repository.RepositoryResponse
 import com.github.yasevich.regraph.util.async
 import com.github.yasevich.regraph.util.mainThread
 
-class MainFragment: Fragment() {
+class MainFragment: Fragment(), MainScreenContract.Presenter {
 
-    var listener: EventListener? = null
+    override var view: MainScreenContract.View? = null
 
     private var inProgress: Boolean = false
 
@@ -17,9 +17,9 @@ class MainFragment: Fragment() {
         retainInstance = true
     }
 
-    fun requestCurrencies() {
+    override fun requestCurrencies() {
         if (inProgress) {
-            listener?.onInProgress(true)
+            view?.onInProgress(true)
             return
         }
         onInProgress(true)
@@ -42,11 +42,11 @@ class MainFragment: Fragment() {
 
     private fun onInProgress(inProgress: Boolean) {
         this.inProgress = inProgress
-        listener?.onInProgress(inProgress)
+        view?.onInProgress(inProgress)
     }
 
     private fun onCurrencies(currencies: List<String>) {
-        listener?.onCurrencies(currencies)
+        view?.onCurrencies(currencies)
     }
 
     private fun onRefused(error: AppError) {
@@ -54,12 +54,6 @@ class MainFragment: Fragment() {
             AppError.INVALID_CURRENCY -> R.string.app_error_invalid_currency
             AppError.TECHNICAL_ERROR -> R.string.app_error_technical_error
         }
-        listener?.onRefused(getText(resId))
-    }
-
-    interface EventListener {
-        fun onInProgress(inProgress: Boolean)
-        fun onCurrencies(currencies: List<String>)
-        fun onRefused(error: CharSequence)
+        view?.onRefused(getText(resId))
     }
 }

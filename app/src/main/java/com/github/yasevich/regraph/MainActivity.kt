@@ -12,13 +12,13 @@ import android.widget.Toast
 
 private const val TAG_MAIN_FRAGMENT = "mainFragment"
 
-class MainActivity : AppCompatActivity(), MainFragment.EventListener, SwipeRefreshLayout.OnRefreshListener {
+class MainActivity : AppCompatActivity(), MainScreenContract.View, SwipeRefreshLayout.OnRefreshListener {
 
     private val adapter = Adapter(this)
 
     private val swipe: SwipeRefreshLayout by lazy { findViewById<SwipeRefreshLayout>(R.id.swipe) }
 
-    private lateinit var fragment: MainFragment
+    private lateinit var presenter: MainScreenContract.Presenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,21 +29,22 @@ class MainActivity : AppCompatActivity(), MainFragment.EventListener, SwipeRefre
         swipe.setOnRefreshListener(this)
 
         if (savedInstanceState == null) {
-            fragment = MainFragment()
-            supportFragmentManager
-                    .beginTransaction()
-                    .add(fragment, TAG_MAIN_FRAGMENT)
-                    .commit()
+            presenter = MainFragment().also {
+                supportFragmentManager
+                        .beginTransaction()
+                        .add(it, TAG_MAIN_FRAGMENT)
+                        .commit()
+            }
         } else {
-            fragment = supportFragmentManager.findFragmentByTag(TAG_MAIN_FRAGMENT) as MainFragment
+            presenter = supportFragmentManager.findFragmentByTag(TAG_MAIN_FRAGMENT) as MainFragment
         }
 
-        fragment.listener = this
-        fragment.requestCurrencies()
+        presenter.view = this
+        presenter.requestCurrencies()
     }
 
     override fun onDestroy() {
-        fragment.listener = null
+        presenter.view = null
         super.onDestroy()
     }
 
@@ -62,7 +63,7 @@ class MainActivity : AppCompatActivity(), MainFragment.EventListener, SwipeRefre
         Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
     }
     override fun onRefresh() {
-        fragment.requestCurrencies()
+        presenter.requestCurrencies()
     }
 
     private class Adapter(private val context: Context) : RecyclerView.Adapter<Adapter.ViewHolder>() {
