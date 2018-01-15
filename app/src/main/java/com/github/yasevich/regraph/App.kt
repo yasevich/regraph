@@ -4,18 +4,18 @@ import android.app.Application
 import android.os.Handler
 import android.os.Looper
 import com.github.yasevich.regraph.repository.AssetCurrencyRateRepository
-import com.github.yasevich.regraph.repository.CurrencyRateRepository
 
 class App : Application() {
 
     val handler: Handler by lazy { Handler(Looper.getMainLooper()) }
-    val repository: CurrencyRateRepository by lazy { AssetCurrencyRateRepository(this) }
-    val mainScreenPresenter: MainScreenContract.Presenter by lazy { MainScreenPresenter() }
 
     override fun onCreate() {
         super.onCreate()
         instance = this
     }
+
+    fun createMainScreenPresenter(): MainScreenContract.Presenter =
+            MainScreenPresenter(AssetCurrencyRateRepository(this))
 
     companion object {
         lateinit var instance: App

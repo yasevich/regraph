@@ -2,11 +2,12 @@ package com.github.yasevich.regraph
 
 import com.github.yasevich.regraph.model.AppError
 import com.github.yasevich.regraph.model.AppStatus
+import com.github.yasevich.regraph.repository.CurrencyRateRepository
 import com.github.yasevich.regraph.repository.RepositoryResponse
 import com.github.yasevich.regraph.util.async
 import com.github.yasevich.regraph.util.mainThread
 
-class MainScreenPresenter : MainScreenContract.Presenter {
+class MainScreenPresenter(private val repository: CurrencyRateRepository) : MainScreenContract.Presenter {
 
     override var view: MainScreenContract.View? = null
 
@@ -20,7 +21,7 @@ class MainScreenPresenter : MainScreenContract.Presenter {
         onInProgress(true)
 
         async {
-            val response = App.instance.repository.getCurrencies()
+            val response = repository.getCurrencies()
             mainThread {
                 onCurrenciesResponse(response)
             }

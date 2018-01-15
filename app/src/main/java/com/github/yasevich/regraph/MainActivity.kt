@@ -10,13 +10,16 @@ import android.view.ViewGroup
 import android.widget.CheckedTextView
 import android.widget.Toast
 
+private const val TAG_FRAGMENT_MAIN = "mainFragment"
+
 class MainActivity : AppCompatActivity(), MainScreenContract.View, SwipeRefreshLayout.OnRefreshListener {
 
     private val adapter = Adapter(this)
 
     private val swipe: SwipeRefreshLayout by lazy { findViewById<SwipeRefreshLayout>(R.id.swipe) }
+    private val presenter: MainScreenContract.Presenter by lazy { fragment.presenter }
 
-    private val presenter: MainScreenContract.Presenter = App.instance.mainScreenPresenter
+    private lateinit var fragment: MainFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,6 +28,15 @@ class MainActivity : AppCompatActivity(), MainScreenContract.View, SwipeRefreshL
         findViewById<RecyclerView>(R.id.list).adapter = adapter
 
         swipe.setOnRefreshListener(this)
+
+        if (savedInstanceState == null) {
+            fragment = MainFragment()
+            supportFragmentManager.beginTransaction()
+                    .add(fragment, TAG_FRAGMENT_MAIN)
+                    .commit()
+        } else {
+            supportFragmentManager.findFragmentByTag(TAG_FRAGMENT_MAIN)
+        }
 
         presenter.view = this
         presenter.requestCurrencies()
