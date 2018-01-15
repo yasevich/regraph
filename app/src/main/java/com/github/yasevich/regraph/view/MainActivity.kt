@@ -1,7 +1,6 @@
 package com.github.yasevich.regraph.view
 
 import android.os.Bundle
-import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
@@ -16,7 +15,7 @@ import kotlinx.android.synthetic.main.activity_main.swipe
 
 private const val TAG_FRAGMENT_MAIN = "mainFragment"
 
-class MainActivity : AppCompatActivity(), CurrencySelectionContract.View, SwipeRefreshLayout.OnRefreshListener {
+class MainActivity : AppCompatActivity(), CurrencySelectionContract.View {
 
     private val adapter = Adapter()
 
@@ -27,9 +26,7 @@ class MainActivity : AppCompatActivity(), CurrencySelectionContract.View, SwipeR
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        list.adapter = adapter
-        swipe.setOnRefreshListener(this)
+        prepareViews()
 
         if (savedInstanceState == null) {
             fragment = MainFragment()
@@ -71,12 +68,22 @@ class MainActivity : AppCompatActivity(), CurrencySelectionContract.View, SwipeR
         }
     }
 
+    override fun onShowGraph(currencies: List<String>) {
+        startActivity(GraphActivity.intent(this, currencies))
+    }
+
     override fun onError(textResId: Int) {
         Toast.makeText(this, textResId, Toast.LENGTH_SHORT).show()
     }
 
-    override fun onRefresh() {
-        presenter.requestCurrencies()
+    private fun prepareViews() {
+        list.adapter = adapter
+        swipe.setOnRefreshListener({
+            presenter.requestCurrencies()
+        })
+        showRates.setOnClickListener({
+            presenter.showGraph()
+        })
     }
 
     private inner class Adapter : RecyclerView.Adapter<ViewHolder>() {

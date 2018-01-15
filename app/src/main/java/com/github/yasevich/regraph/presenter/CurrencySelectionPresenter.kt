@@ -44,6 +44,10 @@ class CurrencySelectionPresenter(private val repository: CurrencyRateRepository)
         onSelectionChanged(currency)
     }
 
+    override fun showGraph() {
+        view?.onShowGraph(selectedCurrencies)
+    }
+
     private fun onCurrenciesResponse(response: RepositoryResponse<List<String>>) {
         when (response.status) {
             AppStatus.SUCCESS -> onCurrencies(response.result!!)

@@ -7,6 +7,7 @@ interface CurrencySelectionContract {
         fun onCurrenciesLoading(inProgress: Boolean)
         fun onCurrenciesSelection(valid: Boolean)
         fun onCurrencySelectionChanged(currencies: List<Pair<String, Boolean>>, position: Int)
+        fun onShowGraph(currencies: List<String>)
         fun onError(textResId: Int)
     }
 
@@ -15,5 +16,6 @@ interface CurrencySelectionContract {
         fun requestCurrencies()
         fun addSelectedCurrency(currency: String)
         fun removeSelectedCurrency(currency: String)
+        fun showGraph()
     }
 }
