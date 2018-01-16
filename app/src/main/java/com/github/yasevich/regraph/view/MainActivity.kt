@@ -7,8 +7,9 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.CheckedTextView
 import android.widget.Toast
+import com.github.yasevich.regraph.CurrencySelectionContract
 import com.github.yasevich.regraph.R
-import com.github.yasevich.regraph.presenter.CurrencySelectionContract
+import com.github.yasevich.regraph.util.showToast
 import kotlinx.android.synthetic.main.activity_main.list
 import kotlinx.android.synthetic.main.activity_main.showRates
 import kotlinx.android.synthetic.main.activity_main.swipe
@@ -69,11 +70,11 @@ class MainActivity : AppCompatActivity(), CurrencySelectionContract.View {
     }
 
     override fun onShowGraph(currencies: List<String>) {
-        startActivity(GraphActivity.intent(this, currencies))
+        startActivity(LiveRatesActivity.intent(this, currencies))
     }
 
     override fun onError(textResId: Int) {
-        Toast.makeText(this, textResId, Toast.LENGTH_SHORT).show()
+        showToast(textResId, Toast.LENGTH_SHORT)
     }
 
     private fun prepareViews() {

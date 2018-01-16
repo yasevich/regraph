@@ -1,5 +1,6 @@
 package com.github.yasevich.regraph.presenter
 
+import com.github.yasevich.regraph.LiveRatesContract
 import com.github.yasevich.regraph.R
 import com.github.yasevich.regraph.model.AppError
 import com.github.yasevich.regraph.model.AppStatus
@@ -23,6 +24,7 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
         stopUpdates()
         this.currencies = currencies
         this.baseCurrency = currencies[0]
+        onNewBaseCurrency(baseCurrency)
     }
 
     override fun setBaseCurrency(baseCurrency: String) {

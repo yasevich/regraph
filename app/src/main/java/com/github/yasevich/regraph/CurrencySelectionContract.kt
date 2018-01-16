@@ -1,4 +1,4 @@
-package com.github.yasevich.regraph.presenter
+package com.github.yasevich.regraph
 
 interface CurrencySelectionContract {
 

@@ -1,14 +1,8 @@
 package com.github.yasevich.regraph.view
 
-import android.support.v4.app.Fragment
 import com.github.yasevich.regraph.App
-import com.github.yasevich.regraph.presenter.CurrencySelectionContract
+import com.github.yasevich.regraph.CurrencySelectionContract
 
-class MainFragment : Fragment() {
-
-    val presenter: CurrencySelectionContract.Presenter = App.instance.createCurrencySelectionPresenter()
-
-    init {
-        retainInstance = true
-    }
+class MainFragment : PresenterHolderFragment<CurrencySelectionContract.Presenter>() {
+    override val presenter: CurrencySelectionContract.Presenter = App.instance.createCurrencySelectionPresenter()
 }

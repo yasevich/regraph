@@ -1,4 +1,4 @@
-package com.github.yasevich.regraph.presenter
+package com.github.yasevich.regraph
 
 import com.github.yasevich.regraph.model.CurrencyRate
 

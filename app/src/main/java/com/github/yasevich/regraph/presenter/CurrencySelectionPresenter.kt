@@ -1,5 +1,6 @@
 package com.github.yasevich.regraph.presenter
 
+import com.github.yasevich.regraph.CurrencySelectionContract
 import com.github.yasevich.regraph.R
 import com.github.yasevich.regraph.model.AppError
 import com.github.yasevich.regraph.model.AppStatus
