@@ -86,6 +86,6 @@ class CurrencySelectionPresenter(private val repository: CurrencyRateRepository)
     }
 
     private fun onSelectedCurrencies() {
-        view?.onCurrenciesSelection(selectedCurrencies.isNotEmpty())
+        view?.onCurrenciesSelection(selectedCurrencies.size >= 2)
     }
 }

@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity(), CurrencySelectionContract.View {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        setTitle(R.string.app_main_title)
         prepareViews()
 
         if (savedInstanceState == null) {

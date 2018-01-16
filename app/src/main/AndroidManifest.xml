@@ -15,7 +15,6 @@
         tools:ignore="GoogleAppIndexingWarning">
 
         <activity
-            android:label="@string/app_main_title"
             android:name=".view.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
