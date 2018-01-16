@@ -3,7 +3,7 @@ package com.github.yasevich.regraph.repository
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import com.github.yasevich.regraph.model.AppError
-import com.github.yasevich.regraph.model.CurrencyRateModel
+import com.github.yasevich.regraph.model.CurrencyRate
 import com.github.yasevich.regraph.util.copyToInternalStorage
 import org.json.JSONObject
 import java.io.File
@@ -42,7 +42,7 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
     }
 
     override fun getRates(baseCurrency: String?, currencies: Set<String>?):
-            RepositoryResponse<List<CurrencyRateModel>> {
+            RepositoryResponse<List<CurrencyRate>> {
         return select(baseCurrency, merge(baseCurrency, currencies)).also { second++ }
     }
 
@@ -62,7 +62,7 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
         return SQLiteDatabase.openDatabase(outFileName, null, SQLiteDatabase.OPEN_READONLY)
     }
 
-    private fun select(baseCurrency: String?, currencies: Set<String>?): RepositoryResponse<List<CurrencyRateModel>> {
+    private fun select(baseCurrency: String?, currencies: Set<String>?): RepositoryResponse<List<CurrencyRate>> {
         val rawRates: String
         try {
             rawRates = database.query(
@@ -102,7 +102,7 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
     }
 
     private fun createList(rates: MutableMap<String, BigDecimal>, baseCurrency: String?):
-            RepositoryResponse<List<CurrencyRateModel>> {
+            RepositoryResponse<List<CurrencyRate>> {
 
         if (rates.isEmpty()) {
             return RepositoryResponse.success(emptyList())
@@ -113,7 +113,7 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
         }
 
         val baseCurrencyCode = baseCurrency ?: if (rates.containsKey(DEFAULT_BASE)) DEFAULT_BASE else rates.keys.first()
-        val base = CurrencyRateModel(baseCurrencyCode, BigDecimal.ONE)
+        val base = CurrencyRate(baseCurrencyCode, BigDecimal.ONE)
 
         val baseRate = rates[baseCurrencyCode]!!
         val result = mutableListOf(base)
@@ -121,7 +121,7 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
         with(rates) {
             remove(baseCurrencyCode)
             forEach {
-                result.add(CurrencyRateModel(it.key, it.value.divide(baseRate, 4, RoundingMode.HALF_UP), base))
+                result.add(CurrencyRate(it.key, it.value.divide(baseRate, 4, RoundingMode.HALF_UP), base))
             }
         }
 

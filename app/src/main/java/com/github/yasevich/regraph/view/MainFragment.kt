@@ -6,7 +6,7 @@ import com.github.yasevich.regraph.presenter.CurrencySelectionContract
 
 class MainFragment : Fragment() {
 
-    val presenter: CurrencySelectionContract.Presenter = App.instance.createMainScreenPresenter()
+    val presenter: CurrencySelectionContract.Presenter = App.instance.createCurrencySelectionPresenter()
 
     init {
         retainInstance = true

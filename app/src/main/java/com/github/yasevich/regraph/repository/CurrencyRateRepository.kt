@@ -1,6 +1,6 @@
 package com.github.yasevich.regraph.repository
 
-import com.github.yasevich.regraph.model.CurrencyRateModel
+import com.github.yasevich.regraph.model.CurrencyRate
 
 /**
  * Interface of a repository containing currency rates.
@@ -23,5 +23,5 @@ interface CurrencyRateRepository {
      * @return response, containing list of currency rates for specified filters
      */
     fun getRates(baseCurrency: String? = null, currencies: Set<String>? = null):
-            RepositoryResponse<List<CurrencyRateModel>>
+            RepositoryResponse<List<CurrencyRate>>
 }
