@@ -21,14 +21,12 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
     private var timer: Timer? = null
 
     override fun setCurrencies(currencies: List<String>) {
-        stopUpdates()
         this.currencies = currencies
         this.baseCurrency = currencies[0]
         onNewBaseCurrency(baseCurrency)
     }
 
     override fun setBaseCurrency(baseCurrency: String) {
-        stopUpdates()
         if (currencies.contains(baseCurrency)) {
             this.baseCurrency = baseCurrency
             onNewBaseCurrency(baseCurrency)

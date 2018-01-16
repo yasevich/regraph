@@ -5,6 +5,8 @@
     <string name="app_main_title">Select currencies</string>
     <string name="app_main_show_rates">Show rates</string>
 
+    <string name="app_live_rates_title">Live rates</string>
+
     <string name="app_error_invalid_currency">Invalid base currency is selected.</string>
     <string name="app_error_technical_error">Technical error. Something went wrong.</string>
 
