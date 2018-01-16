@@ -24,12 +24,14 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
         this.currencies = currencies
         this.baseCurrency = currencies[0]
         onNewBaseCurrency(baseCurrency)
+        restartIfNeeded()
     }
 
     override fun setBaseCurrency(baseCurrency: String) {
         if (currencies.contains(baseCurrency)) {
             this.baseCurrency = baseCurrency
             onNewBaseCurrency(baseCurrency)
+            restartIfNeeded()
         } else {
             onRefused(AppError.INVALID_CURRENCY)
         }
@@ -49,6 +51,13 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
 
     override fun stopUpdates() {
         timer?.cancel()
+    }
+
+    private fun restartIfNeeded() {
+        if (timer != null) {
+            stopUpdates()
+            startUpdates()
+        }
     }
 
     private fun onCurrenciesResponse(response: RepositoryResponse<List<CurrencyRate>>) {

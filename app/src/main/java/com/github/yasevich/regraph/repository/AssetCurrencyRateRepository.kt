@@ -9,6 +9,7 @@ import org.json.JSONObject
 import java.io.File
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.util.TimeZone
 
 private const val FILE_NAME = "rates.sqlite"
 private const val DEFAULT_BASE = "GBP"
@@ -16,8 +17,6 @@ private const val DEFAULT_BASE = "GBP"
 class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
 
     private val database: SQLiteDatabase by lazy { openDatabase(context) }
-
-    private var second = 0
 
     override fun getCurrencies(): RepositoryResponse<List<String>> {
         try {
@@ -43,7 +42,7 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
 
     override fun getRates(baseCurrency: String?, currencies: Set<String>?):
             RepositoryResponse<List<CurrencyRate>> {
-        return select(baseCurrency, merge(baseCurrency, currencies)).also { second++ }
+        return select(baseCurrency, merge(baseCurrency, currencies))
     }
 
     private fun merge(baseCurrency: String?, currencies: Set<String>?): Set<String>? {
@@ -69,7 +68,7 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
                     "rates",
                     arrayOf("rates"),
                     "second = ?",
-                    arrayOf("$second"),
+                    arrayOf("${getSecondOfDay()}"),
                     null,
                     null,
                     null,
@@ -86,6 +85,8 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
         }
         return createList(filter(parse(rawRates), currencies).toMutableMap(), baseCurrency)
     }
+
+    private fun getSecondOfDay(): Long = (System.currentTimeMillis() + TimeZone.getDefault().rawOffset) / 1000 % 86400
 
     private fun parse(rawRates: String): Map<String, BigDecimal> {
         val map = mutableMapOf(DEFAULT_BASE to BigDecimal.ONE)
