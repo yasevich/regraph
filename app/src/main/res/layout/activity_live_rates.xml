@@ -14,9 +14,9 @@
         android:layout_gravity="center_horizontal"
         tools:listitem="@android:layout/simple_dropdown_item_1line"/>
 
-    <TextView
-        android:id="@+id/log"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+    <com.github.yasevich.regraph.widget.LiveGraphView
+        android:id="@+id/liveRates"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 
 </LinearLayout>

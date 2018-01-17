@@ -13,7 +13,7 @@ import com.github.yasevich.regraph.R
 import com.github.yasevich.regraph.model.CurrencyRate
 import com.github.yasevich.regraph.util.showToast
 import kotlinx.android.synthetic.main.activity_live_rates.baseCurrencySelector
-import kotlinx.android.synthetic.main.activity_live_rates.log
+import kotlinx.android.synthetic.main.activity_live_rates.liveRates
 
 private const val TAG_FRAGMENT_LIVE_RATES = "liveRatesFragment"
 
@@ -66,7 +66,7 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
     }
 
     override fun onNewRates(rates: List<CurrencyRate>) {
-        log.text = rates.toString()
+        liveRates.addPoints(rates.map { it.amount.toFloat() }.toFloatArray())
     }
 
     override fun onError(textResId: Int) {
