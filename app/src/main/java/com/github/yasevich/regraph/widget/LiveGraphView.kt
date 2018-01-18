@@ -2,6 +2,8 @@ package com.github.yasevich.regraph.widget
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.util.AttributeSet
@@ -20,19 +22,25 @@ class LiveGraphView @JvmOverloads constructor(
         defStyleAttr
 ) {
 
-    private val xSpeed: Long = 1000L
-    private val xScale: Int = GRAPH_FRAME_SIZE
-
     private val path: Path = Path()
-    private val paint: Paint = Paint()
+    private val paint: Paint = Paint().apply {
+        color = Color.BLACK
+        strokeWidth = 5f
+        style = Paint.Style.STROKE
+    }
+
+    private val xSpeed: Int = 1
+    private val xTotal: Int = GRAPH_FRAME_SIZE
+
+    private val xScale: Float
+        get() = width.toFloat() / xTotal
+    private val yScale: Float
+        get() = height.toFloat() / yTotal
+
+    private var xShift: Float = 0f
+    private var yTotal: Float = 10f
 
     private var graphs: List<Graph> = emptyList()
-
-    private var xPoints: FloatArray = FloatArray(0)
-
-    private var yScale: Int = 10
-
-    private var skip: Float = 1f
 
     private var updateInterval: Long = UPDATES_PER_SECOND
         set(value) {
@@ -47,9 +55,7 @@ class LiveGraphView @JvmOverloads constructor(
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         if (w > 0) {
-            updateInterval = xSpeed * xScale / w
-            skip = xScale.toFloat() / w
-            xPoints = calculateXPoints(w)
+            updateInterval = 1000L * xSpeed * xTotal / w
         }
     }
 
@@ -60,12 +66,8 @@ class LiveGraphView @JvmOverloads constructor(
 
     fun show(graphs: List<Graph>) {
         this.graphs = graphs
-
-        val max = graphs.map { it.points.last().y }.max()
-        if (max == null || max == Float.NaN) {
-            throw IllegalArgumentException("Graphs contain illegal value.")
-        }
-        yScale = Math.ceil(max.toDouble()).toInt()
+        xShift = (graphs.map { it.points.first().x }.max() ?: Float.MAX_VALUE) - xTotal
+        yTotal = Math.ceil((graphs.map { it.points.last().y }.max() ?: Float.MAX_VALUE).toDouble()).toFloat()
     }
 
     private fun drawFrame() {
@@ -75,19 +77,24 @@ class LiveGraphView @JvmOverloads constructor(
         }
     }
 
-    private fun calculateXPoints(w: Int): FloatArray {
-        val distance = w.toFloat() / (xScale - 1)
-        return if (distance <= 1) {
-            FloatArray(w, { it.toFloat() })
-        } else {
-            var currentPoint = 0f
-            FloatArray(xScale, { currentPoint.also { currentPoint += distance } })
-        }
-    }
-
     private fun draw(graph: Graph, canvas: Canvas) {
         path.reset()
-        // TODO draw graph here
+        graph.drawLineOn(path)
         canvas.drawPath(path, paint)
+    }
+
+    private fun Graph.drawLineOn(path: Path) {
+        points.forEach {
+            if (path.isEmpty) {
+                path.moveTo(it.x - xShift, it.y)
+            } else {
+                path.lineTo(it.x - xShift, it.y)
+            }
+        }
+
+        with(Matrix()) {
+            setScale(xScale, yScale)
+            path.transform(this)
+        }
     }
 }
