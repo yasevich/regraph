@@ -5,6 +5,7 @@ import android.support.test.runner.AndroidJUnit4
 import com.github.yasevich.regraph.model.AppError
 import com.github.yasevich.regraph.model.CurrencyRate
 import com.github.yasevich.regraph.repository.AssetCurrencyRateRepository
+import com.github.yasevich.regraph.repository.CurrencyRateRepository
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -18,32 +19,38 @@ import java.math.BigDecimal
 @RunWith(AndroidJUnit4::class)
 class AssetCurrencyRateRepositorySuite {
 
+    private val repository: CurrencyRateRepository
+        get() = AssetCurrencyRateRepository(InstrumentationRegistry.getTargetContext())
+
+    private val timestamp: Long
+        get() = System.currentTimeMillis() / 1000
+
     @Test
     fun testCurrencies() {
         val expected = listOf("USD", "EUR", "GBP", "AUD")
-        val actual = getRepository().getCurrencies().result
+        val actual = repository.getCurrencies().result
         assertEquals(expected, actual)
     }
 
     @Test
     fun testRates() {
-        val repository = getRepository()
-        val base = CurrencyRate("GBP", BigDecimal.ONE)
+        val repository = repository
+        val base = CurrencyRate("GBP", BigDecimal.ONE, timestamp)
 
         var expected = listOf(
                 base,
-                CurrencyRate("USD", BigDecimal("1.6579"), base),
-                CurrencyRate("AUD", BigDecimal("2.6860"), base),
-                CurrencyRate("EUR", BigDecimal("1.4063"), base)
+                CurrencyRate("USD", BigDecimal("1.6579"), timestamp),
+                CurrencyRate("AUD", BigDecimal("2.6860"), timestamp),
+                CurrencyRate("EUR", BigDecimal("1.4063"), timestamp)
         )
         var actual = repository.getRates().result
         assertEquals(expected, actual)
 
         expected = listOf(
                 base,
-                CurrencyRate("USD", BigDecimal("1.6554"), base),
-                CurrencyRate("AUD", BigDecimal("2.6599"), base),
-                CurrencyRate("EUR", BigDecimal("1.4041"), base)
+                CurrencyRate("USD", BigDecimal("1.6554"), timestamp),
+                CurrencyRate("AUD", BigDecimal("2.6599"), timestamp),
+                CurrencyRate("EUR", BigDecimal("1.4041"), timestamp)
         )
         actual = repository.getRates().result
         assertEquals(expected, actual)
@@ -51,34 +58,34 @@ class AssetCurrencyRateRepositorySuite {
 
     @Test
     fun testRatesWithBaseCurrency() {
-        val base = CurrencyRate("EUR", BigDecimal.ONE)
+        val base = CurrencyRate("EUR", BigDecimal.ONE, timestamp)
         val expected = listOf(
                 base,
-                CurrencyRate("GBP", BigDecimal("0.7111"), base),
-                CurrencyRate("USD", BigDecimal("1.1789"), base),
-                CurrencyRate("AUD", BigDecimal("1.9100"), base)
+                CurrencyRate("GBP", BigDecimal("0.7111"), timestamp),
+                CurrencyRate("USD", BigDecimal("1.1789"), timestamp),
+                CurrencyRate("AUD", BigDecimal("1.9100"), timestamp)
         )
-        val actual = getRepository().getRates("EUR").result
+        val actual = repository.getRates("EUR").result
         assertEquals(expected, actual)
     }
 
     @Test
     fun testRatesWithCurrencies() {
-        val repository = getRepository()
-        val base = CurrencyRate("GBP", BigDecimal.ONE)
+        val repository = repository
+        val base = CurrencyRate("GBP", BigDecimal.ONE, timestamp)
 
         var expected = listOf(
                 base,
-                CurrencyRate("AUD", BigDecimal("2.6860"), base),
-                CurrencyRate("EUR", BigDecimal("1.4063"), base)
+                CurrencyRate("AUD", BigDecimal("2.6860"), timestamp),
+                CurrencyRate("EUR", BigDecimal("1.4063"), timestamp)
         )
         var actual = repository.getRates(currencies = setOf("GBP", "AUD", "EUR")).result
         assertEquals(expected, actual)
 
         expected = listOf(
                 base,
-                CurrencyRate("AUD", BigDecimal("2.6599"), base),
-                CurrencyRate("EUR", BigDecimal("1.4041"), base)
+                CurrencyRate("AUD", BigDecimal("2.6599"), timestamp),
+                CurrencyRate("EUR", BigDecimal("1.4041"), timestamp)
         )
         actual = repository.getRates(currencies = setOf("AUD", "EUR")).result
         assertEquals(expected, actual)
@@ -86,19 +93,19 @@ class AssetCurrencyRateRepositorySuite {
 
     @Test
     fun testRatesWithBaseCurrencyAndCurrencies() {
-        val repository = getRepository()
-        val base = CurrencyRate("EUR", BigDecimal.ONE)
+        val repository = repository
+        val base = CurrencyRate("EUR", BigDecimal.ONE, timestamp)
 
         var expected = listOf(
                 base,
-                CurrencyRate("USD", BigDecimal("1.1789"), base)
+                CurrencyRate("USD", BigDecimal("1.1789"), timestamp)
         )
         var actual = repository.getRates("EUR", setOf("EUR", "USD")).result
         assertEquals(expected, actual)
 
         expected = listOf(
                 base,
-                CurrencyRate("USD", BigDecimal("1.1790"), base)
+                CurrencyRate("USD", BigDecimal("1.1790"), timestamp)
         )
         actual = repository.getRates("EUR", setOf("USD")).result
         assertEquals(expected, actual)
@@ -106,22 +113,20 @@ class AssetCurrencyRateRepositorySuite {
 
     @Test
     fun testRatesUnknownBase() {
-        assertEquals(AppError.INVALID_CURRENCY, getRepository().getRates("XXX").error)
+        assertEquals(AppError.INVALID_CURRENCY, repository.getRates("XXX").error)
     }
 
     @Test
     fun testRatesEmptyCurrencies() {
-        val expected = listOf(CurrencyRate("GBP", BigDecimal.ONE))
-        val actual = getRepository().getRates(currencies = setOf()).result
+        val expected = listOf(CurrencyRate("GBP", BigDecimal.ONE, timestamp))
+        val actual = repository.getRates(currencies = setOf()).result
         assertEquals(expected, actual)
     }
 
     @Test
     fun testRatesUnknownCurrencies() {
-        val expected = listOf(CurrencyRate("GBP", BigDecimal.ONE))
-        val actual = getRepository().getRates(currencies = setOf("XXX")).result
+        val expected = listOf(CurrencyRate("GBP", BigDecimal.ONE, timestamp))
+        val actual = repository.getRates(currencies = setOf("XXX")).result
         assertEquals(expected, actual)
     }
-
-    private fun getRepository() = AssetCurrencyRateRepository(InstrumentationRegistry.getTargetContext())
 }

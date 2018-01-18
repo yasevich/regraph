@@ -5,6 +5,7 @@ import com.github.yasevich.regraph.R
 import com.github.yasevich.regraph.model.AppError
 import com.github.yasevich.regraph.model.AppStatus
 import com.github.yasevich.regraph.model.CurrencyRate
+import com.github.yasevich.regraph.model.CurrencyRates
 import com.github.yasevich.regraph.repository.CurrencyRateRepository
 import com.github.yasevich.regraph.repository.RepositoryResponse
 import com.github.yasevich.regraph.util.async
@@ -18,11 +19,18 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
 
     private lateinit var baseCurrency: String
     private lateinit var currencies: List<String>
+    private lateinit var history: Map<String, CurrencyRates>
+
     private var timer: Timer? = null
 
     override fun setCurrencies(currencies: List<String>) {
         this.currencies = currencies
         this.baseCurrency = currencies[0]
+        this.history = currencies
+                .asSequence()
+                .map { CurrencyRates(it) }
+                .associateBy { it.name }
+
         onNewBaseCurrency(baseCurrency)
         restartIfNeeded()
     }
@@ -72,7 +80,10 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
     }
 
     private fun onNewRates(rates: List<CurrencyRate>) {
-        view?.onNewRates(rates)
+        rates.forEach {
+            history[it.currency.currencyCode]?.add(it)
+        }
+        view?.onNewRates(history.values.map { it.toGraph() })
     }
 
     private fun onRefused(error: AppError) {

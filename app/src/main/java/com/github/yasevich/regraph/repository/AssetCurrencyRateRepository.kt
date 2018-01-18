@@ -5,11 +5,11 @@ import android.database.sqlite.SQLiteDatabase
 import com.github.yasevich.regraph.model.AppError
 import com.github.yasevich.regraph.model.CurrencyRate
 import com.github.yasevich.regraph.util.copyToInternalStorage
+import com.github.yasevich.regraph.util.currentTimeSeconds
 import org.json.JSONObject
 import java.io.File
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.util.TimeZone
 
 private const val FILE_NAME = "rates.sqlite"
 private const val DEFAULT_BASE = "GBP"
@@ -62,13 +62,14 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
     }
 
     private fun select(baseCurrency: String?, currencies: Set<String>?): RepositoryResponse<List<CurrencyRate>> {
+        val timestamp = currentTimeSeconds()
         val rawRates: String
         try {
             rawRates = database.query(
                     "rates",
                     arrayOf("rates"),
                     "second = ?",
-                    arrayOf("${getSecondOfDay()}"),
+                    arrayOf("${timestamp % 86400}"),
                     null,
                     null,
                     null,
@@ -83,10 +84,8 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
         } catch (e: Exception) {
             return RepositoryResponse.error(AppError.TECHNICAL_ERROR)
         }
-        return createList(filter(parse(rawRates), currencies).toMutableMap(), baseCurrency)
+        return createList(filter(parse(rawRates), currencies).toMutableMap(), baseCurrency, timestamp)
     }
-
-    private fun getSecondOfDay(): Long = (System.currentTimeMillis() + TimeZone.getDefault().rawOffset) / 1000 % 86400
 
     private fun parse(rawRates: String): Map<String, BigDecimal> {
         val map = mutableMapOf(DEFAULT_BASE to BigDecimal.ONE)
@@ -102,7 +101,7 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
         return if (currencies != null) rates.filterKeys { currencies.contains(it) } else rates
     }
 
-    private fun createList(rates: MutableMap<String, BigDecimal>, baseCurrency: String?):
+    private fun createList(rates: MutableMap<String, BigDecimal>, baseCurrency: String?, timestamp: Long):
             RepositoryResponse<List<CurrencyRate>> {
 
         if (rates.isEmpty()) {
@@ -114,7 +113,7 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
         }
 
         val baseCurrencyCode = baseCurrency ?: if (rates.containsKey(DEFAULT_BASE)) DEFAULT_BASE else rates.keys.first()
-        val base = CurrencyRate(baseCurrencyCode, BigDecimal.ONE)
+        val base = CurrencyRate(baseCurrencyCode, BigDecimal.ONE, timestamp)
 
         val baseRate = rates[baseCurrencyCode]!!
         val result = mutableListOf(base)
@@ -122,7 +121,7 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
         with(rates) {
             remove(baseCurrencyCode)
             forEach {
-                result.add(CurrencyRate(it.key, it.value.divide(baseRate, 4, RoundingMode.HALF_UP), base))
+                result.add(CurrencyRate(it.key, it.value.divide(baseRate, 4, RoundingMode.HALF_UP), timestamp))
             }
         }
 

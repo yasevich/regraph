@@ -10,7 +10,7 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import com.github.yasevich.regraph.LiveRatesContract
 import com.github.yasevich.regraph.R
-import com.github.yasevich.regraph.model.CurrencyRate
+import com.github.yasevich.regraph.model.Graph
 import com.github.yasevich.regraph.util.showToast
 import kotlinx.android.synthetic.main.activity_live_rates.baseCurrencySelector
 import kotlinx.android.synthetic.main.activity_live_rates.liveRates
@@ -65,8 +65,8 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
         baseCurrencySelector.setSelection(currencies.indexOf(baseCurrency))
     }
 
-    override fun onNewRates(rates: List<CurrencyRate>) {
-        liveRates.addPoints(rates.map { it.amount.toFloat() }.toFloatArray())
+    override fun onNewRates(graphs: List<Graph>) {
+        liveRates.show(graphs)
     }
 
     override fun onError(textResId: Int) {
