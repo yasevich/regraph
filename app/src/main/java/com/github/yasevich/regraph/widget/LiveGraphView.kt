@@ -3,10 +3,10 @@ package com.github.yasevich.regraph.widget
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.View
 import com.github.yasevich.regraph.GRAPH_FRAME_SIZE
 import com.github.yasevich.regraph.UPDATES_PER_SECOND
@@ -25,20 +25,21 @@ class LiveGraphView @JvmOverloads constructor(
     private val path: Path = Path()
     private val paint: Paint = Paint().apply {
         color = Color.BLACK
-        strokeWidth = 5f
+        strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1f, context.resources.displayMetrics)
         style = Paint.Style.STROKE
     }
 
-    private val xSpeed: Int = 1
-    private val xTotal: Int = GRAPH_FRAME_SIZE
-
     private val xScale: Float
         get() = width.toFloat() / xTotal
-    private val yScale: Float
+    private val yScale: Double
         get() = height.toFloat() / yTotal
 
-    private var xShift: Float = 0f
-    private var yTotal: Float = 10f
+    private val xSpeed: Int = 1
+
+    private val xTotal: Int = GRAPH_FRAME_SIZE
+
+    private var yTotal: Double = 10.0
+    private var xShift: Double = 0.0
 
     private var graphs: List<Graph> = emptyList()
 
@@ -66,8 +67,8 @@ class LiveGraphView @JvmOverloads constructor(
 
     fun show(graphs: List<Graph>) {
         this.graphs = graphs
-        xShift = ((graphs.map { it.points.first().x }.max() ?: Double.MAX_VALUE) - xTotal).toFloat()
-        yTotal = Math.ceil(graphs.map { it.points.last().y }.max() ?: Double.MAX_VALUE).toFloat()
+        xShift = (graphs.map { it.points.last().x }.max() ?: Double.MAX_VALUE) - xTotal
+        yTotal = Math.ceil(graphs.map { it.points.last().y }.max() ?: Double.MAX_VALUE)
     }
 
     private fun drawFrame() {
@@ -85,16 +86,13 @@ class LiveGraphView @JvmOverloads constructor(
 
     private fun Graph.drawLineOn(path: Path) {
         points.forEach {
+            val px = ((it.x - xShift) * xScale).toFloat()
+            val py = (it.y * yScale).toFloat()
             if (path.isEmpty) {
-                path.moveTo((it.x - xShift).toFloat(), it.y.toFloat())
+                path.moveTo(px, py)
             } else {
-                path.lineTo((it.x - xShift).toFloat(), it.y.toFloat())
+                path.lineTo(px, py)
             }
-        }
-
-        with(Matrix()) {
-            setScale(xScale, yScale)
-            path.transform(this)
         }
     }
 }
