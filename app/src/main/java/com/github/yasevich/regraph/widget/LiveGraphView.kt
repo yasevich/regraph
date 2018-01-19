@@ -9,7 +9,8 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
 import com.github.yasevich.regraph.GRAPH_FRAME_SIZE
-import com.github.yasevich.regraph.UPDATES_PER_SECOND
+import com.github.yasevich.regraph.GRAPH_LINE_WIDTH_SP
+import com.github.yasevich.regraph.MIN_UPDATE_INTERVAL
 import com.github.yasevich.regraph.model.Graph
 
 class LiveGraphView @JvmOverloads constructor(
@@ -25,16 +26,16 @@ class LiveGraphView @JvmOverloads constructor(
     private val path: Path = Path()
     private val paint: Paint = Paint().apply {
         color = Color.BLACK
-        strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1f, context.resources.displayMetrics)
+        strokeWidth = TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, GRAPH_LINE_WIDTH_SP, context.resources.displayMetrics)
         style = Paint.Style.STROKE
     }
+    private val colors: MutableMap<String, Int> = mutableMapOf()
 
-    private val xScale: Float
-        get() = width.toFloat() / xTotal
+    private val xScale: Double
+        get() = width.toDouble() / xTotal
     private val yScale: Double
-        get() = height.toFloat() / yTotal
-
-    private val xSpeed: Int = 1
+        get() = height / yTotal
 
     private val xTotal: Int = GRAPH_FRAME_SIZE
 
@@ -43,9 +44,10 @@ class LiveGraphView @JvmOverloads constructor(
 
     private var graphs: List<Graph> = emptyList()
 
-    private var updateInterval: Long = UPDATES_PER_SECOND
+    private var updates: Double = 0.0
+    private var updateInterval: Long = MIN_UPDATE_INTERVAL
         set(value) {
-            field = if (value < UPDATES_PER_SECOND) UPDATES_PER_SECOND else value
+            field = if (value < MIN_UPDATE_INTERVAL) MIN_UPDATE_INTERVAL else value
         }
 
     override fun onAttachedToWindow() {
@@ -56,7 +58,7 @@ class LiveGraphView @JvmOverloads constructor(
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         if (w > 0) {
-            updateInterval = 1000L * xSpeed * xTotal / w
+            updateInterval = 1000L * xTotal / w
         }
     }
 
@@ -67,6 +69,9 @@ class LiveGraphView @JvmOverloads constructor(
 
     fun show(graphs: List<Graph>) {
         this.graphs = graphs
+        this.updates = 0.0
+        initGraphColors()
+
         xShift = (graphs.map { it.points.last().x }.max() ?: Double.MAX_VALUE) - xTotal
         yTotal = Math.ceil(graphs.map { it.points.last().y }.max() ?: Double.MAX_VALUE)
     }
@@ -74,6 +79,7 @@ class LiveGraphView @JvmOverloads constructor(
     private fun drawFrame() {
         if (isAttachedToWindow) {
             invalidate()
+            updates += updateInterval.toDouble() / 1000L
             postDelayed({ drawFrame() }, updateInterval)
         }
     }
@@ -81,12 +87,21 @@ class LiveGraphView @JvmOverloads constructor(
     private fun draw(graph: Graph, canvas: Canvas) {
         path.reset()
         graph.drawLineOn(path)
+        paint.color = colors[graph.name] ?: Color.BLACK
         canvas.drawPath(path, paint)
+    }
+
+    private fun initGraphColors() {
+        graphs.forEach {
+            if (!colors.containsKey(it.name)) {
+                colors[it.name] = it.generateColor()
+            }
+        }
     }
 
     private fun Graph.drawLineOn(path: Path) {
         points.forEach {
-            val px = ((it.x - xShift) * xScale).toFloat()
+            val px = ((it.x - xShift - updates) * xScale).toFloat()
             val py = (it.y * yScale).toFloat()
             if (path.isEmpty) {
                 path.moveTo(px, py)
@@ -95,4 +110,14 @@ class LiveGraphView @JvmOverloads constructor(
             }
         }
     }
+
+    private fun Graph.generateColor(): Int {
+        val code = name.padStart(3, 'A')
+        val r = code[2].colorCode()
+        val g = code[1].colorCode()
+        val b = code[0].colorCode()
+        return Color.rgb(r, g, b)
+    }
+
+    private fun Char.colorCode(): Int = (this - 'A') * 9
 }

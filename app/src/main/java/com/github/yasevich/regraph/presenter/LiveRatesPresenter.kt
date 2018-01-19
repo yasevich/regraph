@@ -2,6 +2,7 @@ package com.github.yasevich.regraph.presenter
 
 import com.github.yasevich.regraph.LiveRatesContract
 import com.github.yasevich.regraph.R
+import com.github.yasevich.regraph.UPDATES_RATE_MS
 import com.github.yasevich.regraph.model.AppError
 import com.github.yasevich.regraph.model.AppStatus
 import com.github.yasevich.regraph.model.CurrencyRate
@@ -48,7 +49,7 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
     override fun startUpdates() {
         stopUpdates()
         async {
-            timer = fixedRateTimer(period = 1000L) {
+            timer = fixedRateTimer(period = UPDATES_RATE_MS) {
                 val rates = repository.getRates(baseCurrency, currencies.toSet())
                 mainThread {
                     onCurrenciesResponse(rates)
