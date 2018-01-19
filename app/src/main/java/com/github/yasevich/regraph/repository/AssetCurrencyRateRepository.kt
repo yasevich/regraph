@@ -18,6 +18,11 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
 
     private val database: SQLiteDatabase by lazy { openDatabase(context) }
 
+    override fun getRates(baseCurrency: String?, currencies: Set<String>?, timestamp: Long?):
+            RepositoryResponse<List<CurrencyRate>> {
+        return select(baseCurrency, merge(baseCurrency, currencies), timestamp)
+    }
+
     override fun getCurrencies(): RepositoryResponse<List<String>> {
         try {
             database.query(
@@ -40,11 +45,6 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
         }
     }
 
-    override fun getRates(baseCurrency: String?, currencies: Set<String>?):
-            RepositoryResponse<List<CurrencyRate>> {
-        return select(baseCurrency, merge(baseCurrency, currencies))
-    }
-
     private fun merge(baseCurrency: String?, currencies: Set<String>?): Set<String>? {
         return if (currencies != null) {
             currencies + (baseCurrency ?: DEFAULT_BASE)
@@ -61,15 +61,17 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
         return SQLiteDatabase.openDatabase(outFileName, null, SQLiteDatabase.OPEN_READONLY)
     }
 
-    private fun select(baseCurrency: String?, currencies: Set<String>?): RepositoryResponse<List<CurrencyRate>> {
-        val timestamp = currentTimeSeconds()
+    private fun select(baseCurrency: String?, currencies: Set<String>?, timestamp: Long?):
+            RepositoryResponse<List<CurrencyRate>> {
+
+        val ts = timestamp ?: currentTimeSeconds()
         val rawRates: String
         try {
             rawRates = database.query(
                     "rates",
                     arrayOf("rates"),
                     "second = ?",
-                    arrayOf("${timestamp % 86400}"),
+                    arrayOf("${ts % 86400}"),
                     null,
                     null,
                     null,
@@ -84,7 +86,7 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
         } catch (e: Exception) {
             return RepositoryResponse.error(AppError.TECHNICAL_ERROR)
         }
-        return createList(filter(parse(rawRates), currencies).toMutableMap(), baseCurrency, timestamp)
+        return createList(filter(parse(rawRates), currencies).toMutableMap(), baseCurrency, ts)
     }
 
     private fun parse(rawRates: String): Map<String, BigDecimal> {

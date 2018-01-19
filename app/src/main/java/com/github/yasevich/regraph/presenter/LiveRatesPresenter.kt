@@ -83,7 +83,7 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
         rates.forEach {
             history[it.currency.currencyCode]?.add(it)
         }
-        view?.onNewRates(history.values.map { it.toGraph() })
+        view?.onNewRates(history.values.map { it.graph })
     }
 
     private fun onRefused(error: AppError) {

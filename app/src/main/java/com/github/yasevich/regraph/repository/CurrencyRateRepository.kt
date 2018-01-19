@@ -22,6 +22,6 @@ interface CurrencyRateRepository {
      * @param currencies filter result to include only this currencies excluding or including [baseCurrency]
      * @return response, containing list of currency rates for specified filters
      */
-    fun getRates(baseCurrency: String? = null, currencies: Set<String>? = null):
+    fun getRates(baseCurrency: String? = null, currencies: Set<String>? = null, timestamp: Long? = null):
             RepositoryResponse<List<CurrencyRate>>
 }

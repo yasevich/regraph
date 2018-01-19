@@ -66,8 +66,8 @@ class LiveGraphView @JvmOverloads constructor(
 
     fun show(graphs: List<Graph>) {
         this.graphs = graphs
-        xShift = (graphs.map { it.points.first().x }.max() ?: Float.MAX_VALUE) - xTotal
-        yTotal = Math.ceil((graphs.map { it.points.last().y }.max() ?: Float.MAX_VALUE).toDouble()).toFloat()
+        xShift = ((graphs.map { it.points.first().x }.max() ?: Double.MAX_VALUE) - xTotal).toFloat()
+        yTotal = Math.ceil(graphs.map { it.points.last().y }.max() ?: Double.MAX_VALUE).toFloat()
     }
 
     private fun drawFrame() {
@@ -86,9 +86,9 @@ class LiveGraphView @JvmOverloads constructor(
     private fun Graph.drawLineOn(path: Path) {
         points.forEach {
             if (path.isEmpty) {
-                path.moveTo(it.x - xShift, it.y)
+                path.moveTo((it.x - xShift).toFloat(), it.y.toFloat())
             } else {
-                path.lineTo(it.x - xShift, it.y)
+                path.lineTo((it.x - xShift).toFloat(), it.y.toFloat())
             }
         }
 

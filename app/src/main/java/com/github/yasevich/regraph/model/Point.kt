@@ -1,3 +1,3 @@
 package com.github.yasevich.regraph.model
 
-class Point(val x: Float, val y: Float)
+data class Point(val x: Double, val y: Double)

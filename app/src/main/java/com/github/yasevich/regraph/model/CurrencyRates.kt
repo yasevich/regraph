@@ -6,6 +6,9 @@ import java.util.LinkedList
 
 class CurrencyRates(val name: String) {
 
+    val graph: Graph
+        get() = Graph(name, rates.map { it.point })
+
     private val rates: Deque<CurrencyRate> = LinkedList()
 
     fun add(rate: CurrencyRate) {
@@ -17,6 +20,4 @@ class CurrencyRates(val name: String) {
             rates.removeFirst()
         }
     }
-
-    fun toGraph(): Graph = Graph(name, rates.map { Point(it.timestamp.toFloat(), it.amount.toFloat()) })
 }
