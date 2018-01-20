@@ -9,8 +9,6 @@ import com.github.yasevich.regraph.model.CurrencyRate
 import com.github.yasevich.regraph.model.CurrencyRates
 import com.github.yasevich.regraph.repository.CurrencyRateRepository
 import com.github.yasevich.regraph.repository.RepositoryResponse
-import com.github.yasevich.regraph.util.async
-import com.github.yasevich.regraph.util.mainThread
 import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
 
@@ -48,13 +46,8 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
 
     override fun startUpdates() {
         stopUpdates()
-        async {
-            timer = fixedRateTimer(period = UPDATES_RATE_MS) {
-                val rates = repository.getRates(baseCurrency, currencies.toSet())
-                mainThread {
-                    onCurrenciesResponse(rates)
-                }
-            }
+        timer = fixedRateTimer(period = UPDATES_RATE_MS) {
+            onCurrenciesResponse(repository.getRates(baseCurrency, currencies.toSet()))
         }
     }
 
