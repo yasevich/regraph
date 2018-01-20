@@ -26,6 +26,7 @@ class LiveGraphView @JvmOverloads constructor(
     private val path: Path = Path()
     private val paint: Paint = Paint().apply {
         color = Color.BLACK
+        isAntiAlias = true
         strokeWidth = TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, GRAPH_LINE_WIDTH_SP, context.resources.displayMetrics)
         style = Paint.Style.STROKE
@@ -72,8 +73,16 @@ class LiveGraphView @JvmOverloads constructor(
         this.updates = 0.0
         initGraphColors()
 
-        xShift = (graphs.map { it.points.last().x }.max() ?: Double.MAX_VALUE) - xTotal
+        xShift = (graphs.map { it.getXShift() }.min() ?: xTotal.toDouble()) - xTotal
         yTotal = Math.ceil(graphs.map { it.points.last().y }.max() ?: Double.MAX_VALUE)
+    }
+
+    private fun initGraphColors() {
+        graphs.forEach {
+            if (!colors.containsKey(it.name)) {
+                colors[it.name] = it.generateColor()
+            }
+        }
     }
 
     private fun drawFrame() {
@@ -91,24 +100,41 @@ class LiveGraphView @JvmOverloads constructor(
         canvas.drawPath(path, paint)
     }
 
-    private fun initGraphColors() {
-        graphs.forEach {
-            if (!colors.containsKey(it.name)) {
-                colors[it.name] = it.generateColor()
-            }
-        }
+    private fun Graph.getXShift(): Double {
+        val index = points.size - 1 - if (points.size > 1) 1 else 0
+        return points[index].x
     }
 
     private fun Graph.drawLineOn(path: Path) {
-        points.forEach {
-            val px = ((it.x - xShift - updates) * xScale).toFloat()
-            val py = (it.y * yScale).toFloat()
+        val iterator = points.iterator()
+        /*val drawablePoints = mutableListOf<PointF>()*/
+        while (iterator.hasNext()) {
+            val point = iterator.next()
+            val px = ((point.x - xShift - updates) * xScale).toFloat()
+            val py = (point.y * yScale).toFloat()
+
             if (path.isEmpty) {
                 path.moveTo(px, py)
             } else {
                 path.lineTo(px, py)
+                /*drawablePoints.add(PointF(px, py))
+                if (drawablePoints.size == 3) {
+                    path.cubicTo(
+                            drawablePoints[0].x, drawablePoints[0].y,
+                            drawablePoints[1].x, drawablePoints[1].y,
+                            drawablePoints[2].x, drawablePoints[2].y
+                    )
+                    drawablePoints.clear()
+                }*/
             }
         }
+
+        /*if (drawablePoints.isNotEmpty()) {
+            when (drawablePoints.size) {
+                2 -> path.quadTo(drawablePoints[0].x, drawablePoints[0].y, drawablePoints[1].x, drawablePoints[1].y)
+                1 -> path.lineTo(drawablePoints[0].x, drawablePoints[0].y)
+            }
+        }*/
     }
 
     private fun Graph.generateColor(): Int {
