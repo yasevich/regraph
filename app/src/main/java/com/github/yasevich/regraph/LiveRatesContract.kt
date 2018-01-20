@@ -5,7 +5,8 @@ import com.github.yasevich.regraph.model.Graph
 interface LiveRatesContract {
 
     interface View {
-        fun onNewBaseCurrency(baseCurrency: String, currencies: List<String>)
+        fun onBaseCurrency(baseIndex: Int)
+        fun onCurrencies(currencies: List<String>)
         fun onNewRates(graphs: List<Graph>)
         fun onError(textResId: Int)
     }

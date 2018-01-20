@@ -15,6 +15,15 @@ import kotlin.concurrent.fixedRateTimer
 class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRatesContract.Presenter {
 
     override var view: LiveRatesContract.View? = null
+        set(value) {
+            field = value
+            if (value != null) {
+                onView()
+            }
+        }
+
+    private val baseCurrencyIndex: Int
+        get() = currencies.indexOf(baseCurrency)
 
     private lateinit var baseCurrency: String
     private lateinit var currencies: List<String>
@@ -30,15 +39,13 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
                 .map { CurrencyRates(it) }
                 .associateBy { it.name }
 
-        onNewBaseCurrency(baseCurrency)
-        restartIfNeeded()
+        onCurrencies()
     }
 
     override fun setBaseCurrency(baseCurrency: String) {
         if (currencies.contains(baseCurrency)) {
             this.baseCurrency = baseCurrency
-            onNewBaseCurrency(baseCurrency)
-            restartIfNeeded()
+            onBaseCurrency()
         } else {
             onRefused(AppError.INVALID_CURRENCY)
         }
@@ -47,7 +54,7 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
     override fun startUpdates() {
         stopUpdates()
         timer = fixedRateTimer(period = UPDATES_RATE_MS) {
-            onCurrenciesResponse(repository.getRates(baseCurrency, currencies.toSet()))
+            handle(repository.getRates(baseCurrency, currencies.toSet()))
         }
     }
 
@@ -55,28 +62,33 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
         timer?.cancel()
     }
 
-    private fun restartIfNeeded() {
-        if (timer != null) {
-            stopUpdates()
-            startUpdates()
-        }
+    private fun onView() {
+        onCurrencies()
     }
 
-    private fun onCurrenciesResponse(response: RepositoryResponse<List<CurrencyRate>>) {
+    private fun handle(response: RepositoryResponse<List<CurrencyRate>>) {
         when (response.status) {
-            AppStatus.SUCCESS -> onNewRates(response.result!!)
+            AppStatus.SUCCESS -> addRates(response.result!!)
             AppStatus.REFUSED -> onRefused(response.error!!)
         }
     }
 
-    private fun onNewBaseCurrency(baseCurrency: String) {
-        view?.onNewBaseCurrency(baseCurrency, currencies)
-    }
-
-    private fun onNewRates(rates: List<CurrencyRate>) {
+    private fun addRates(rates: List<CurrencyRate>) {
         rates.forEach {
             history[it.currency.currencyCode]?.add(it)
         }
+        onNewRates()
+    }
+
+    private fun onBaseCurrency() {
+        view?.onBaseCurrency(baseCurrencyIndex)
+    }
+
+    private fun onCurrencies() {
+        view?.onCurrencies(currencies)
+    }
+
+    private fun onNewRates() {
         view?.onNewRates(history.values.map { it.graph })
     }
 

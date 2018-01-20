@@ -37,32 +37,31 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
         if (savedInstanceState == null) {
             fragment = LiveRatesFragment()
             supportFragmentManager.beginTransaction()
-                    .add(LiveRatesFragment(), TAG_FRAGMENT_LIVE_RATES)
+                    .add(fragment, TAG_FRAGMENT_LIVE_RATES)
                     .commit()
+            presenter.setCurrencies(intent.getStringArrayExtra(EXTRA_CURRENCIES).toList())
         } else {
             fragment = supportFragmentManager.findFragmentByTag(TAG_FRAGMENT_LIVE_RATES) as LiveRatesFragment
         }
 
         presenter.view = this
-        presenter.setCurrencies(intent.getStringArrayExtra(EXTRA_CURRENCIES).toList())
-    }
-
-    override fun onStart() {
-        super.onStart()
         presenter.startUpdates()
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onDestroy() {
+        super.onDestroy()
         presenter.stopUpdates()
     }
 
-    override fun onNewBaseCurrency(baseCurrency: String, currencies: List<String>) {
+    override fun onBaseCurrency(baseIndex: Int) {
+        baseCurrencySelector.setSelection(baseIndex)
+    }
+
+    override fun onCurrencies(currencies: List<String>) {
         with(adapter) {
             clear()
             addAll(currencies)
         }
-        baseCurrencySelector.setSelection(currencies.indexOf(baseCurrency))
     }
 
     override fun onNewRates(graphs: List<Graph>) {
