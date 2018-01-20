@@ -6,12 +6,16 @@ import com.github.yasevich.regraph.model.AppError
 import com.github.yasevich.regraph.model.AppStatus
 import com.github.yasevich.regraph.repository.CurrencyRateRepository
 import com.github.yasevich.regraph.repository.RepositoryResponse
-import com.github.yasevich.regraph.util.async
-import com.github.yasevich.regraph.util.mainThread
 
 class CurrencySelectionPresenter(private val repository: CurrencyRateRepository) : CurrencySelectionContract.Presenter {
 
     override var view: CurrencySelectionContract.View? = null
+        set(value) {
+            field = value
+            if (value != null) {
+                onView()
+            }
+        }
 
     private val currencies: MutableList<String> = mutableListOf()
     private val selectedCurrencies: MutableList<String> = mutableListOf()
@@ -19,20 +23,15 @@ class CurrencySelectionPresenter(private val repository: CurrencyRateRepository)
         get() = currencies.map { Pair(it, selectedCurrencies.contains(it)) }
 
     private var inProgress: Boolean = false
+        set(value) {
+            field = value
+            onInProgress(value)
+        }
 
     override fun requestCurrencies() {
-        if (inProgress) {
-            view?.onCurrenciesLoading(true)
-            return
-        }
-        onInProgress(true)
-
-        async {
-            val response = repository.getCurrencies()
-            mainThread {
-                onCurrenciesResponse(response)
-            }
-        }
+        inProgress = true
+        handle(repository.getCurrencies())
+        inProgress = false
     }
 
     override fun addSelectedCurrency(currency: String) {
@@ -49,25 +48,32 @@ class CurrencySelectionPresenter(private val repository: CurrencyRateRepository)
         view?.onShowGraph(selectedCurrencies)
     }
 
-    private fun onCurrenciesResponse(response: RepositoryResponse<List<String>>) {
+    private fun handle(response: RepositoryResponse<List<String>>) {
         when (response.status) {
-            AppStatus.SUCCESS -> onCurrencies(response.result!!)
+            AppStatus.SUCCESS -> setCurrencies(response.result!!)
             AppStatus.REFUSED -> onRefused(response.error!!)
         }
-        onInProgress(false)
     }
 
-    private fun onInProgress(inProgress: Boolean) {
-        this.inProgress = inProgress
-        view?.onCurrenciesLoading(inProgress)
-    }
-
-    private fun onCurrencies(currencies: List<String>) {
+    private fun setCurrencies(currencies: List<String>) {
         with(this.currencies) {
             clear()
             addAll(currencies)
         }
         selectedCurrencies.retainAll(currencies)
+        onCurrencies()
+    }
+
+    private fun onView() {
+        onInProgress(inProgress)
+        onCurrencies()
+    }
+
+    private fun onInProgress(inProgress: Boolean) {
+        view?.onCurrenciesLoading(inProgress)
+    }
+
+    private fun onCurrencies() {
         view?.onCurrencies(currenciesSelection)
         onSelectedCurrencies()
     }

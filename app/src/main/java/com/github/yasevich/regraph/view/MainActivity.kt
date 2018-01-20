@@ -35,12 +35,12 @@ class MainActivity : AppCompatActivity(), CurrencySelectionContract.View {
             supportFragmentManager.beginTransaction()
                     .add(fragment, TAG_FRAGMENT_MAIN)
                     .commit()
+            presenter.requestCurrencies()
         } else {
             fragment = supportFragmentManager.findFragmentByTag(TAG_FRAGMENT_MAIN) as MainFragment
         }
 
         presenter.view = this
-        presenter.requestCurrencies()
     }
 
     override fun onDestroy() {
