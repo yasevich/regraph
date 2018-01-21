@@ -91,7 +91,7 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
 
     companion object {
 
-        private const val EXTRA_CURRENCIES = "currencies"
+        private const val EXTRA_CURRENCIES = "rates"
 
         fun intent(context: Context, currencies: List<String>): Intent {
             return Intent(context, LiveRatesActivity::class.java)

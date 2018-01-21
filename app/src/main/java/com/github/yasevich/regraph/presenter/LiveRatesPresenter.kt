@@ -5,7 +5,6 @@ import com.github.yasevich.regraph.R
 import com.github.yasevich.regraph.UPDATES_RATE_MS
 import com.github.yasevich.regraph.model.AppError
 import com.github.yasevich.regraph.model.AppStatus
-import com.github.yasevich.regraph.model.CurrencyRate
 import com.github.yasevich.regraph.model.CurrencyRates
 import com.github.yasevich.regraph.repository.CurrencyRateRepository
 import com.github.yasevich.regraph.repository.RepositoryResponse
@@ -27,7 +26,7 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
 
     private lateinit var baseCurrency: String
     private lateinit var currencies: List<String>
-    private lateinit var history: Map<String, CurrencyRates>
+    private lateinit var history: Map<String, CurrencyRatesHistory>
 
     private var timer: Timer? = null
 
@@ -36,7 +35,7 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
         this.baseCurrency = currencies[0]
         this.history = currencies
                 .asSequence()
-                .map { CurrencyRates(it) }
+                .map { CurrencyRatesHistory(it) }
                 .associateBy { it.name }
 
         onCurrencies()
@@ -66,16 +65,16 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
         onCurrencies()
     }
 
-    private fun handle(response: RepositoryResponse<List<CurrencyRate>>) {
+    private fun handle(response: RepositoryResponse<CurrencyRates>) {
         when (response.status) {
             AppStatus.SUCCESS -> addRates(response.result!!)
             AppStatus.REFUSED -> onRefused(response.error!!)
         }
     }
 
-    private fun addRates(rates: List<CurrencyRate>) {
-        rates.forEach {
-            history[it.currency.currencyCode]?.add(it)
+    private fun addRates(rates: CurrencyRates) {
+        rates.rates.forEach {
+            history[it.currencyCode]?.add(it)
         }
         onNewRates()
     }
