@@ -12,6 +12,7 @@ import com.github.yasevich.regraph.GRAPH_FRAME_SIZE
 import com.github.yasevich.regraph.GRAPH_LINE_WIDTH_SP
 import com.github.yasevich.regraph.MIN_UPDATE_INTERVAL
 import com.github.yasevich.regraph.model.Graph
+import com.github.yasevich.regraph.util.roundTo
 
 class LiveGraphView @JvmOverloads constructor(
         context: Context,
@@ -41,7 +42,9 @@ class LiveGraphView @JvmOverloads constructor(
     private val xTotal: Int = GRAPH_FRAME_SIZE
 
     private var yTotal: Double = 10.0
+
     private var xShift: Double = 0.0
+    private var yShift: Double = 0.0
 
     private var graphs: List<Graph> = emptyList()
 
@@ -74,7 +77,8 @@ class LiveGraphView @JvmOverloads constructor(
         initGraphColors()
 
         xShift = (graphs.map { it.getXShift() }.min() ?: xTotal.toDouble()) - xTotal
-        yTotal = Math.ceil(graphs.map { it.points.last().y }.max() ?: Double.MAX_VALUE)
+
+        calculateRestrictions(graphs)
     }
 
     private fun initGraphColors() {
@@ -83,6 +87,25 @@ class LiveGraphView @JvmOverloads constructor(
                 colors[it.name] = it.generateColor()
             }
         }
+    }
+
+    private fun calculateRestrictions(graphs: List<Graph>) {
+        var minY = Double.MAX_VALUE
+        var maxY = - minY
+
+        for (graph in graphs) {
+            for (point in graph.points) {
+                if (maxY < point.y) {
+                    maxY = point.y
+                }
+                if (minY > point.y) {
+                    minY = point.y
+                }
+            }
+        }
+
+        yTotal = 1.2 * Math.abs(maxY - minY).roundTo(1)
+        yShift = (minY - 0.1 * yTotal).roundTo(1)
     }
 
     private fun drawFrame() {
@@ -107,34 +130,17 @@ class LiveGraphView @JvmOverloads constructor(
 
     private fun Graph.drawLineOn(path: Path) {
         val iterator = points.iterator()
-        /*val drawablePoints = mutableListOf<PointF>()*/
         while (iterator.hasNext()) {
             val point = iterator.next()
             val px = ((point.x - xShift - updates) * xScale).toFloat()
-            val py = (point.y * yScale).toFloat()
+            val py = ((point.y - yShift)* yScale).toFloat()
 
             if (path.isEmpty) {
                 path.moveTo(px, py)
             } else {
                 path.lineTo(px, py)
-                /*drawablePoints.add(PointF(px, py))
-                if (drawablePoints.size == 3) {
-                    path.cubicTo(
-                            drawablePoints[0].x, drawablePoints[0].y,
-                            drawablePoints[1].x, drawablePoints[1].y,
-                            drawablePoints[2].x, drawablePoints[2].y
-                    )
-                    drawablePoints.clear()
-                }*/
             }
         }
-
-        /*if (drawablePoints.isNotEmpty()) {
-            when (drawablePoints.size) {
-                2 -> path.quadTo(drawablePoints[0].x, drawablePoints[0].y, drawablePoints[1].x, drawablePoints[1].y)
-                1 -> path.lineTo(drawablePoints[0].x, drawablePoints[0].y)
-            }
-        }*/
     }
 
     private fun Graph.generateColor(): Int {
