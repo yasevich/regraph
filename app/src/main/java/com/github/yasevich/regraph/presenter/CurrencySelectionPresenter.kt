@@ -35,13 +35,16 @@ class CurrencySelectionPresenter(private val repository: CurrencyRateRepository)
     }
 
     override fun addSelectedCurrency(currency: String) {
-        selectedCurrencies.add(currency)
-        onSelectionChanged(currency)
+        if (!selectedCurrencies.contains(currency)) {
+            selectedCurrencies.add(currency)
+            onSelectionChanged(currency)
+        }
     }
 
     override fun removeSelectedCurrency(currency: String) {
-        selectedCurrencies.remove(currency)
-        onSelectionChanged(currency)
+        if (selectedCurrencies.remove(currency)) {
+            onSelectionChanged(currency)
+        }
     }
 
     override fun showGraph() {
