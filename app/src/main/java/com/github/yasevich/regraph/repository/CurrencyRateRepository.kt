@@ -1,6 +1,7 @@
 package com.github.yasevich.regraph.repository
 
 import com.github.yasevich.regraph.model.CurrencyRates
+import com.github.yasevich.regraph.model.CurrencyRatesHistory
 
 /**
  * Interface of a repository containing currency rates.
@@ -24,4 +25,10 @@ interface CurrencyRateRepository {
      */
     fun getRates(baseCurrency: String? = null, currencies: Set<String>? = null, timestamp: Long? = null):
             RepositoryResponse<CurrencyRates>
+
+    /**
+     * Like [getRates] but returns currency rates history for specified range
+     */
+    fun getHistory(baseCurrency: String? = null, currencies: Set<String>? = null, timestampRange: LongRange? = null):
+            RepositoryResponse<CurrencyRatesHistory>
 }

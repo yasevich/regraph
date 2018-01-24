@@ -2,11 +2,16 @@ package com.github.yasevich.regraph.repository
 
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
+import com.github.yasevich.regraph.RATES_HISTORY_SIZE
 import com.github.yasevich.regraph.model.AppError
+import com.github.yasevich.regraph.model.AppStatus
 import com.github.yasevich.regraph.model.CurrencyRate
 import com.github.yasevich.regraph.model.CurrencyRates
+import com.github.yasevich.regraph.model.CurrencyRatesHistory
+import com.github.yasevich.regraph.util.SECONDS_IN_DAY
 import com.github.yasevich.regraph.util.copyToInternalStorage
 import com.github.yasevich.regraph.util.currentTimeSeconds
+import com.github.yasevich.regraph.util.secondsAtStartOfDay
 import org.json.JSONObject
 import java.io.File
 import java.math.BigDecimal
@@ -25,6 +30,12 @@ private const val COLUMN_SECOND = "second"
 class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
 
     private val database: SQLiteDatabase by lazy { openDatabase(context) }
+
+    private val defaultTimestampRange: LongRange
+        get() {
+            val currentTimeSeconds = currentTimeSeconds()
+            return currentTimeSeconds - RATES_HISTORY_SIZE .. currentTimeSeconds
+        }
 
     override fun getCurrencies(): RepositoryResponse<List<String>> {
         try {
@@ -50,7 +61,55 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
 
     override fun getRates(baseCurrency: String?, currencies: Set<String>?, timestamp: Long?):
             RepositoryResponse<CurrencyRates> {
-        return select(baseCurrency, merge(baseCurrency, currencies), timestamp)
+
+        val ts = timestamp ?: currentTimeSeconds()
+        val day = secondsAtStartOfDay(ts)
+        val rawRates = try {
+            database.query(
+                    TABLE_RATES,
+                    arrayOf(COLUMN_RATES, COLUMN_SECOND),
+                    "$COLUMN_SECOND = ?",
+                    arrayOf("${ts % SECONDS_IN_DAY}"),
+                    null,
+                    null,
+                    null,
+                    "1"
+            ).use {
+                if (it.moveToNext()) {
+                    it.getString(0) to day + it.getLong(1)
+                } else {
+                    val rate = CurrencyRate(baseCurrency ?: DEFAULT_BASE, BigDecimal.ONE, ts)
+                    return RepositoryResponse.success(CurrencyRates(listOf(rate), ts))
+                }
+            }
+        } catch (e: Exception) {
+            return RepositoryResponse.error(AppError.TECHNICAL_ERROR)
+        }
+
+        val rates = filter(parse(rawRates.first), merge(baseCurrency, currencies))
+        if (rates.isEmpty()) {
+            return RepositoryResponse.success(CurrencyRates(timestamp = rawRates.second))
+        }
+        if (baseCurrency != null && !rates.containsKey(baseCurrency)) {
+            return RepositoryResponse.error(AppError.INVALID_CURRENCY)
+        }
+
+        return RepositoryResponse.success(createList(rates.toMutableMap(), baseCurrency, rawRates.second))
+    }
+
+    override fun getHistory(baseCurrency: String?, currencies: Set<String>?, timestampRange: LongRange?):
+            RepositoryResponse<CurrencyRatesHistory> {
+
+        val history = CurrencyRatesHistory(RATES_HISTORY_SIZE)
+        (timestampRange ?: defaultTimestampRange)
+                .map { getRates(baseCurrency, currencies, it) }
+                .forEach {
+                    when (it.status) {
+                        AppStatus.SUCCESS -> history.add(it.result!!)
+                        AppStatus.REFUSED -> return RepositoryResponse.error(it.error!!)
+                    }
+                }
+        return RepositoryResponse.success(history)
     }
 
     private fun merge(baseCurrency: String?, currencies: Set<String>?): Set<String>? {
@@ -67,43 +126,6 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
             context.assets.copyToInternalStorage(FILE_NAME, outFileName)
         }
         return SQLiteDatabase.openDatabase(outFileName, null, SQLiteDatabase.OPEN_READONLY)
-    }
-
-    private fun select(baseCurrency: String?, currencies: Set<String>?, timestamp: Long?):
-            RepositoryResponse<CurrencyRates> {
-
-        val ts = timestamp ?: currentTimeSeconds()
-        val rawRates = try {
-            database.query(
-                    TABLE_RATES,
-                    arrayOf(COLUMN_RATES, COLUMN_SECOND),
-                    "$COLUMN_SECOND = ?",
-                    arrayOf("${ts % 86400}"),
-                    null,
-                    null,
-                    null,
-                    "1"
-            ).use {
-                if (it.moveToNext()) {
-                    it.getString(0) to it.getLong(1)
-                } else {
-                    val rate = CurrencyRate(baseCurrency ?: DEFAULT_BASE, BigDecimal.ONE, ts)
-                    return RepositoryResponse.success(CurrencyRates(listOf(rate), ts))
-                }
-            }
-        } catch (e: Exception) {
-            return RepositoryResponse.error(AppError.TECHNICAL_ERROR)
-        }
-
-        val rates = filter(parse(rawRates.first), currencies)
-        if (rates.isEmpty()) {
-            return RepositoryResponse.success(CurrencyRates(timestamp = rawRates.second))
-        }
-        if (baseCurrency != null && !rates.containsKey(baseCurrency)) {
-            return RepositoryResponse.error(AppError.INVALID_CURRENCY)
-        }
-
-        return RepositoryResponse.success(createList(rates.toMutableMap(), baseCurrency, rawRates.second))
     }
 
     private fun parse(rawRates: String): Map<String, BigDecimal> {
