@@ -12,7 +12,7 @@ import com.github.yasevich.regraph.GRAPH_FRAME_SIZE
 import com.github.yasevich.regraph.GRAPH_LINE_WIDTH_SP
 import com.github.yasevich.regraph.MIN_UPDATE_INTERVAL
 import com.github.yasevich.regraph.model.Graph
-import com.github.yasevich.regraph.util.roundTo
+import com.github.yasevich.regraph.util.ceilTo
 
 class LiveGraphView @JvmOverloads constructor(
         context: Context,
@@ -104,8 +104,8 @@ class LiveGraphView @JvmOverloads constructor(
             }
         }
 
-        yTotal = 1.2 * Math.abs(maxY - minY).roundTo(1)
-        yShift = (minY - 0.1 * yTotal).roundTo(1)
+        yTotal = 1.4 * Math.abs(maxY - minY).ceilTo(1)
+        yShift = (minY - 0.2 * yTotal).ceilTo(1)
     }
 
     private fun drawFrame() {

@@ -11,9 +11,11 @@ data class CurrencyRates(val rates: List<CurrencyRate> = emptyList(), val timest
 
         val base = rates.find { it.currencyCode == currencyCode }
                 ?: throw IllegalArgumentException("no such currency code: $currencyCode")
-        val result = mutableListOf(base.copy(amount = BigDecimal.ONE))
-        rates.filter { it != base }
-                .forEach { result.add(it.copy(amount = it.amount.divide(base.amount, BigDecimal.ROUND_HALF_UP))) }
-        return copy(rates = result)
+
+        val rebased = rates.toMutableList()
+                .apply { remove(base) }
+                .map { it.copy(amount = it.amount.divide(base.amount, base.amount.scale(), BigDecimal.ROUND_HALF_UP)) }
+
+        return copy(rates = listOf(base.copy(amount = BigDecimal.ONE), *rebased.toTypedArray()))
     }
 }

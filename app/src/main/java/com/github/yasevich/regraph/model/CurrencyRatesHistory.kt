@@ -25,11 +25,25 @@ data class CurrencyRatesHistory(private val maxSize: Int) {
 
     private val deque: Deque<CurrencyRates> = LinkedList()
 
+    private val lock: Any = Any()
+
     fun add(rates: CurrencyRates) {
         with(deque) {
-            add(rates)
-            while (size > maxSize) {
-                removeFirst()
+            synchronized(lock) {
+                add(rates)
+                while (size > maxSize) {
+                    removeFirst()
+                }
+            }
+        }
+    }
+
+    fun rebase(currencyCode: String) {
+        with(deque) {
+            synchronized(lock) {
+            val newHistory = map { it.rebase(currencyCode) }
+                clear()
+                addAll(newHistory)
             }
         }
     }

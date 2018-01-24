@@ -1,7 +1,6 @@
 package com.github.yasevich.regraph
 
 import com.github.yasevich.regraph.util.ceilTo
-import com.github.yasevich.regraph.util.roundTo
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -19,9 +18,9 @@ class MathSuite {
 
     @Test
     fun testRoundTo() {
-        assertEquals(12.34, 12.3411.roundTo(4), DELTA_DOUBLE)
-        assertEquals(1234.0, 1234.11.roundTo(4), DELTA_DOUBLE)
-        assertEquals(0.1234, 0.123411.roundTo(4), DELTA_DOUBLE)
-        assertEquals(123400.0, 123411.0.roundTo(4), DELTA_DOUBLE)
+        assertEquals(12.35, 12.3411.ceilTo(4), DELTA_DOUBLE)
+        assertEquals(1235.0, 1234.11.ceilTo(4), DELTA_DOUBLE)
+        assertEquals(0.1235, 0.123411.ceilTo(4), DELTA_DOUBLE)
+        assertEquals(123500.0, 123411.0.ceilTo(4), DELTA_DOUBLE)
     }
 }
