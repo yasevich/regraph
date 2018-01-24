@@ -41,7 +41,7 @@ data class CurrencyRatesHistory(private val maxSize: Int) {
     fun rebase(currencyCode: String) {
         with(deque) {
             synchronized(lock) {
-            val newHistory = map { it.rebase(currencyCode) }
+                val newHistory = map { it.rebase(currencyCode) }
                 clear()
                 addAll(newHistory)
             }

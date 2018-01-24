@@ -55,9 +55,10 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
         stopUpdates()
         val response = repository.getHistory(baseCurrency, currencies.toSet())
         history = when (response.status) {
-            AppStatus.SUCCESS -> response.result.also { onNewRates() }
+            AppStatus.SUCCESS -> response.result
             AppStatus.REFUSED -> CurrencyRatesHistory(RATES_HISTORY_SIZE)
         }
+        onNewRates()
 
         timer = fixedRateTimer(initialDelay = UPDATES_RATE_MS, period = UPDATES_RATE_MS) {
             handle(repository.getRates(baseCurrency, currencies.toSet()))
@@ -93,7 +94,7 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
     }
 
     private fun onNewRates() {
-        view?.onNewRates(history?.graphs ?: emptyList())
+        history?.also { view?.onNewRates(it.graphs) }
     }
 
     private fun onRefused(error: AppError) {
