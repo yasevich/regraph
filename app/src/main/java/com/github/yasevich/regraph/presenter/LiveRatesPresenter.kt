@@ -2,10 +2,12 @@ package com.github.yasevich.regraph.presenter
 
 import com.github.yasevich.regraph.LiveRatesContract
 import com.github.yasevich.regraph.R
+import com.github.yasevich.regraph.RATES_HISTORY_SIZE
 import com.github.yasevich.regraph.UPDATES_RATE_MS
 import com.github.yasevich.regraph.model.AppError
 import com.github.yasevich.regraph.model.AppStatus
 import com.github.yasevich.regraph.model.CurrencyRates
+import com.github.yasevich.regraph.model.CurrencyRatesHistory
 import com.github.yasevich.regraph.repository.CurrencyRateRepository
 import com.github.yasevich.regraph.repository.RepositoryResponse
 import java.util.Timer
@@ -24,19 +26,16 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
     private val baseCurrencyIndex: Int
         get() = currencies.indexOf(baseCurrency)
 
+    private var history: CurrencyRatesHistory? = null
+
     private lateinit var baseCurrency: String
     private lateinit var currencies: List<String>
-    private lateinit var history: Map<String, CurrencyRatesHistory>
 
     private var timer: Timer? = null
 
     override fun setCurrencies(currencies: List<String>) {
         this.currencies = currencies
         this.baseCurrency = currencies[0]
-        this.history = currencies
-                .asSequence()
-                .map { CurrencyRatesHistory(it) }
-                .associateBy { it.name }
 
         onCurrencies()
     }
@@ -52,6 +51,12 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
 
     override fun startUpdates() {
         stopUpdates()
+        val response = repository.getHistory(baseCurrency, currencies.toSet())
+        history = when (response.status) {
+            AppStatus.SUCCESS -> response.result
+            AppStatus.REFUSED -> CurrencyRatesHistory(RATES_HISTORY_SIZE)
+        }
+
         timer = fixedRateTimer(period = UPDATES_RATE_MS) {
             handle(repository.getRates(baseCurrency, currencies.toSet()))
         }
@@ -73,9 +78,7 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
     }
 
     private fun addRates(rates: CurrencyRates) {
-        rates.rates.forEach {
-            history[it.currencyCode]?.add(it)
-        }
+        history?.add(rates)
         onNewRates()
     }
 
@@ -88,11 +91,11 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
     }
 
     private fun onNewRates() {
-        view?.onNewRates(history.values.map { it.graph })
+        view?.onNewRates(history?.graphs ?: emptyList())
     }
 
     private fun onRefused(error: AppError) {
-        val textResId = when(error) {
+        val textResId = when (error) {
             AppError.INVALID_CURRENCY -> R.string.app_error_invalid_currency
             AppError.TECHNICAL_ERROR -> R.string.app_error_technical_error
         }
