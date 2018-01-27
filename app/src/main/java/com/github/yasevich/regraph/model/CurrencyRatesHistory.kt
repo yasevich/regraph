@@ -5,30 +5,15 @@ import java.util.LinkedList
 
 data class CurrencyRatesHistory(private val maxSize: Int) {
 
-    val graphs: List<Graph>
-        get() {
-            val graphs: MutableMap<String, MutableList<Point>> = mutableMapOf()
-            deque.asSequence()
-                    .map {
-                        it.rates.associateBy {
-                            it.currencyCode
-                        }
-                    }
-                    .forEach {
-                        it.forEach {
-                            graphs.getOrPut(it.key, {mutableListOf() })
-                                    .add(it.value.point)
-                        }
-                    }
-            return graphs.map { Graph(it.key, it.value) }
-        }
+    val items: List<CurrencyRates>
+        get() = _items.toList()
 
-    private val deque: Deque<CurrencyRates> = LinkedList()
+    private val _items: Deque<CurrencyRates> = LinkedList()
 
     private val lock: Any = Any()
 
     fun add(rates: CurrencyRates) {
-        with(deque) {
+        with(_items) {
             synchronized(lock) {
                 add(rates)
                 while (size > maxSize) {
@@ -39,7 +24,7 @@ data class CurrencyRatesHistory(private val maxSize: Int) {
     }
 
     fun rebase(currencyCode: String) {
-        with(deque) {
+        with(_items) {
             synchronized(lock) {
                 val newHistory = map { it.rebase(currencyCode) }
                 clear()

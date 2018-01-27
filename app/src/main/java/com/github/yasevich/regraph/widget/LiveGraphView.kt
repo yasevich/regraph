@@ -11,7 +11,8 @@ import android.view.View
 import com.github.yasevich.regraph.GRAPH_FRAME_SIZE
 import com.github.yasevich.regraph.GRAPH_LINE_WIDTH_SP
 import com.github.yasevich.regraph.MIN_UPDATE_INTERVAL
-import com.github.yasevich.regraph.model.Graph
+import com.github.yasevich.regraph.util.ColorPicker
+import com.github.yasevich.regraph.util.UniqueColorPicker
 import com.github.yasevich.regraph.util.ceilTo
 
 class LiveGraphView @JvmOverloads constructor(
@@ -32,6 +33,8 @@ class LiveGraphView @JvmOverloads constructor(
                 TypedValue.COMPLEX_UNIT_DIP, GRAPH_LINE_WIDTH_SP, context.resources.displayMetrics)
         style = Paint.Style.STROKE
     }
+
+    private val picker: ColorPicker = UniqueColorPicker()
     private val colors: MutableMap<String, Int> = mutableMapOf()
 
     private val xScale: Double
@@ -46,7 +49,7 @@ class LiveGraphView @JvmOverloads constructor(
     private var xShift: Double = 0.0
     private var yShift: Double = 0.0
 
-    private var graphs: List<Graph> = emptyList()
+    private var graphs: List<LiveGraph> = emptyList()
 
     private var updates: Double = 0.0
     private var updateInterval: Long = MIN_UPDATE_INTERVAL
@@ -71,7 +74,7 @@ class LiveGraphView @JvmOverloads constructor(
         graphs.forEach { draw(it, canvas) }
     }
 
-    fun show(graphs: List<Graph>) {
+    fun show(graphs: List<LiveGraph>) {
         this.graphs = graphs
         this.updates = 0.0
         initGraphColors()
@@ -83,13 +86,11 @@ class LiveGraphView @JvmOverloads constructor(
 
     private fun initGraphColors() {
         graphs.forEach {
-            if (!colors.containsKey(it.name)) {
-                colors[it.name] = it.generateColor()
-            }
+            colors.getOrPut(it.name, { picker.nextColor() })
         }
     }
 
-    private fun calculateRestrictions(extremes: List<Graph.Extremes>) {
+    private fun calculateRestrictions(extremes: List<LiveGraph.Extremes>) {
         var minY = Double.MAX_VALUE
         var maxY = - minY
 
@@ -114,19 +115,19 @@ class LiveGraphView @JvmOverloads constructor(
         }
     }
 
-    private fun draw(graph: Graph, canvas: Canvas) {
+    private fun draw(graph: LiveGraph, canvas: Canvas) {
         path.reset()
         graph.drawLineOn(path)
         paint.color = colors[graph.name] ?: Color.BLACK
         canvas.drawPath(path, paint)
     }
 
-    private fun Graph.getXShift(): Double {
+    private fun LiveGraph.getXShift(): Double {
         val index = points.size - 1 - if (points.size > 1) 1 else 0
         return points[index].x
     }
 
-    private fun Graph.drawLineOn(path: Path) {
+    private fun LiveGraph.drawLineOn(path: Path) {
         val iterator = points.iterator()
         while (iterator.hasNext()) {
             val point = iterator.next()
@@ -140,14 +141,4 @@ class LiveGraphView @JvmOverloads constructor(
             }
         }
     }
-
-    private fun Graph.generateColor(): Int {
-        val code = name.padStart(3, 'A')
-        val r = code[2].colorCode()
-        val g = code[1].colorCode()
-        val b = code[0].colorCode()
-        return Color.rgb(r, g, b)
-    }
-
-    private fun Char.colorCode(): Int = (this - 'A') * 9
 }

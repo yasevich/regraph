@@ -1,13 +1,13 @@
 package com.github.yasevich.regraph
 
-import com.github.yasevich.regraph.model.Graph
+import com.github.yasevich.regraph.widget.LiveGraph
 
 interface LiveRatesContract {
 
     interface View {
         fun onBaseCurrency(baseIndex: Int)
         fun onCurrencies(currencies: List<String>)
-        fun onNewRates(graphs: List<Graph>)
+        fun onNewRates(graphs: List<LiveGraph>)
         fun onError(textResId: Int)
     }
 

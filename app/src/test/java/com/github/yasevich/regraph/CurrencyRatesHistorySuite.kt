@@ -3,9 +3,10 @@ package com.github.yasevich.regraph
 import com.github.yasevich.regraph.model.CurrencyRate
 import com.github.yasevich.regraph.model.CurrencyRates
 import com.github.yasevich.regraph.model.CurrencyRatesHistory
-import com.github.yasevich.regraph.model.Graph
-import com.github.yasevich.regraph.model.Point
+import com.github.yasevich.regraph.presenter.graphs
 import com.github.yasevich.regraph.util.currentTimeSeconds
+import com.github.yasevich.regraph.widget.LiveGraph
+import com.github.yasevich.regraph.widget.LiveGraphPoint
 import junit.framework.Assert.assertEquals
 import org.junit.Test
 import java.math.BigDecimal
@@ -32,23 +33,23 @@ class CurrencyRatesHistorySuite {
             ), timestamp))
         }
 
-        val actual = history.graphs
+        val actual = history.graphs()
         val expected = listOf(
-                Graph("GBP", listOf(
-                        Point(timestamp.toDouble(), BigDecimal.ONE.toDouble()),
-                        Point((timestamp + 1).toDouble(), BigDecimal.ONE.toDouble())
+                LiveGraph("GBP", listOf(
+                        LiveGraphPoint(timestamp.toDouble(), BigDecimal.ONE.toDouble()),
+                        LiveGraphPoint((timestamp + 1).toDouble(), BigDecimal.ONE.toDouble())
                 )),
-                Graph("USD", listOf(
-                        Point(timestamp.toDouble(), BigDecimal("1.6579").toDouble()),
-                        Point((timestamp + 1).toDouble(), BigDecimal("1.6554").toDouble())
+                LiveGraph("USD", listOf(
+                        LiveGraphPoint(timestamp.toDouble(), BigDecimal("1.6579").toDouble()),
+                        LiveGraphPoint((timestamp + 1).toDouble(), BigDecimal("1.6554").toDouble())
                 )),
-                Graph("AUD", listOf(
-                        Point(timestamp.toDouble(), BigDecimal("2.6860").toDouble()),
-                        Point((timestamp + 1).toDouble(), BigDecimal("2.6599").toDouble())
+                LiveGraph("AUD", listOf(
+                        LiveGraphPoint(timestamp.toDouble(), BigDecimal("2.6860").toDouble()),
+                        LiveGraphPoint((timestamp + 1).toDouble(), BigDecimal("2.6599").toDouble())
                 )),
-                Graph("EUR", listOf(
-                        Point(timestamp.toDouble(), BigDecimal("1.4063").toDouble()),
-                        Point((timestamp + 1).toDouble(), BigDecimal("1.4041").toDouble())
+                LiveGraph("EUR", listOf(
+                        LiveGraphPoint(timestamp.toDouble(), BigDecimal("1.4063").toDouble()),
+                        LiveGraphPoint((timestamp + 1).toDouble(), BigDecimal("1.4041").toDouble())
                 ))
         )
 
