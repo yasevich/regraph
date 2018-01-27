@@ -35,11 +35,11 @@ class LiveGraphView @JvmOverloads constructor(
     private val colors: MutableMap<String, Int> = mutableMapOf()
 
     private val xScale: Double
-        get() = width.toDouble() / xTotal
+        get() = width.toDouble() / xRange
     private val yScale: Double
         get() = height / yTotal
 
-    private val xTotal: Int = GRAPH_FRAME_SIZE
+    private val xRange: Int = GRAPH_FRAME_SIZE
 
     private var yTotal: Double = 10.0
 
@@ -62,7 +62,7 @@ class LiveGraphView @JvmOverloads constructor(
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         if (w > 0) {
-            updateInterval = 1000L * xTotal / w
+            updateInterval = 1000L * xRange / w
         }
     }
 
@@ -76,9 +76,9 @@ class LiveGraphView @JvmOverloads constructor(
         this.updates = 0.0
         initGraphColors()
 
-        xShift = (graphs.map { it.getXShift() }.min() ?: xTotal.toDouble()) - xTotal
+        xShift = (graphs.map { it.getXShift() }.min() ?: xRange.toDouble()) - xRange
 
-        calculateRestrictions(graphs)
+        calculateRestrictions(graphs.map { it.extremes })
     }
 
     private fun initGraphColors() {
@@ -89,22 +89,20 @@ class LiveGraphView @JvmOverloads constructor(
         }
     }
 
-    private fun calculateRestrictions(graphs: List<Graph>) {
+    private fun calculateRestrictions(extremes: List<Graph.Extremes>) {
         var minY = Double.MAX_VALUE
         var maxY = - minY
 
-        for (graph in graphs) {
-            for (point in graph.points) {
-                if (maxY < point.y) {
-                    maxY = point.y
-                }
-                if (minY > point.y) {
-                    minY = point.y
-                }
+        for (extreme in extremes) {
+            if (maxY < extreme.maxY) {
+                maxY = extreme.maxY
+            }
+            if (minY > extreme.minY) {
+                minY = extreme.minY
             }
         }
 
-        yTotal = 1.4 * Math.abs(maxY - minY).ceilTo(1)
+        yTotal = (1.4 * Math.abs(maxY - minY)).ceilTo(1)
         yShift = (minY - 0.2 * yTotal).ceilTo(1)
     }
 
