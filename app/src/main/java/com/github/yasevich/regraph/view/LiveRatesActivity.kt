@@ -10,8 +10,9 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import com.github.yasevich.regraph.LiveRatesContract
 import com.github.yasevich.regraph.R
+import com.github.yasevich.regraph.model.CurrencyRatesHistory
+import com.github.yasevich.regraph.util.PaletteColorPicker
 import com.github.yasevich.regraph.util.showToast
-import com.github.yasevich.regraph.widget.LiveGraph
 import kotlinx.android.synthetic.main.activity_live_rates.baseCurrencySelector
 import kotlinx.android.synthetic.main.activity_live_rates.liveRates
 
@@ -25,6 +26,8 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
     }
 
     private val presenter: LiveRatesContract.Presenter by lazy { fragment.presenter }
+
+    private val colorMap: CurrencyColorMap = CurrencyColorMapImpl(PaletteColorPicker())
 
     private lateinit var fragment: LiveRatesFragment
 
@@ -64,8 +67,8 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
         }
     }
 
-    override fun onNewRates(graphs: List<LiveGraph>) {
-        liveRates.show(graphs)
+    override fun onNewRates(history: CurrencyRatesHistory) {
+        liveRates.show(history.graphs(colorMap))
     }
 
     override fun onError(textResId: Int) {

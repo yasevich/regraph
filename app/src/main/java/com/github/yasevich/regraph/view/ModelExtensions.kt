@@ -1,4 +1,4 @@
-package com.github.yasevich.regraph.presenter
+package com.github.yasevich.regraph.view
 
 import com.github.yasevich.regraph.model.CurrencyRate
 import com.github.yasevich.regraph.model.CurrencyRatesHistory
@@ -7,7 +7,7 @@ import com.github.yasevich.regraph.widget.LiveGraphPoint
 
 fun CurrencyRate.point(): LiveGraphPoint = LiveGraphPoint(timestamp.toDouble(), amount.toDouble())
 
-fun CurrencyRatesHistory.graphs(): List<LiveGraph> {
+fun CurrencyRatesHistory.graphs(colorMap: CurrencyColorMap): List<LiveGraph> {
     val graphs: MutableMap<String, MutableList<LiveGraphPoint>> = mutableMapOf()
     items.asSequence()
             .map {
@@ -21,5 +21,5 @@ fun CurrencyRatesHistory.graphs(): List<LiveGraph> {
                             .add(it.value.point())
                 }
             }
-    return graphs.map { LiveGraph(it.key, it.value) }
+    return graphs.map { LiveGraph(it.key, it.value, colorMap.getColor(it.key)) }
 }

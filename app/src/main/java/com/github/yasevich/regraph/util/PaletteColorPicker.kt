@@ -3,7 +3,7 @@ package com.github.yasevich.regraph.util
 import android.graphics.Color
 import java.util.Random
 
-class UniqueColorPicker : ColorPicker {
+class PaletteColorPicker : ColorPicker {
 
     private val random: Random = Random()
     private val availableColors: MutableList<Int> = palette.toMutableList()
@@ -33,5 +33,7 @@ class UniqueColorPicker : ColorPicker {
                 Color.parseColor("#9E9E9E"),
                 Color.parseColor("#607D8B")
         )
+
+        val paletteSize: Int = palette.size
     }
 }

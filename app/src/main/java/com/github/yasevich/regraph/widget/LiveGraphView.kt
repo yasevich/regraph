@@ -11,8 +11,6 @@ import android.view.View
 import com.github.yasevich.regraph.GRAPH_FRAME_SIZE
 import com.github.yasevich.regraph.GRAPH_LINE_WIDTH_SP
 import com.github.yasevich.regraph.MIN_UPDATE_INTERVAL
-import com.github.yasevich.regraph.util.ColorPicker
-import com.github.yasevich.regraph.util.UniqueColorPicker
 import com.github.yasevich.regraph.util.ceilTo
 
 class LiveGraphView @JvmOverloads constructor(
@@ -33,9 +31,6 @@ class LiveGraphView @JvmOverloads constructor(
                 TypedValue.COMPLEX_UNIT_DIP, GRAPH_LINE_WIDTH_SP, context.resources.displayMetrics)
         style = Paint.Style.STROKE
     }
-
-    private val picker: ColorPicker = UniqueColorPicker()
-    private val colors: MutableMap<String, Int> = mutableMapOf()
 
     private val xScale: Double
         get() = width.toDouble() / xRange
@@ -77,17 +72,10 @@ class LiveGraphView @JvmOverloads constructor(
     fun show(graphs: List<LiveGraph>) {
         this.graphs = graphs
         this.updates = 0.0
-        initGraphColors()
 
         xShift = (graphs.map { it.getXShift() }.min() ?: xRange.toDouble()) - xRange
 
         calculateRestrictions(graphs.map { it.extremes })
-    }
-
-    private fun initGraphColors() {
-        graphs.forEach {
-            colors.getOrPut(it.name, { picker.nextColor() })
-        }
     }
 
     private fun calculateRestrictions(extremes: List<LiveGraph.Extremes>) {
@@ -118,7 +106,7 @@ class LiveGraphView @JvmOverloads constructor(
     private fun draw(graph: LiveGraph, canvas: Canvas) {
         path.reset()
         graph.drawLineOn(path)
-        paint.color = colors[graph.name] ?: Color.BLACK
+        paint.color = graph.color
         canvas.drawPath(path, paint)
     }
 

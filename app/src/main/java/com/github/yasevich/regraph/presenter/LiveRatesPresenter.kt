@@ -94,7 +94,7 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
     }
 
     private fun onNewRates() {
-        history?.also { view?.onNewRates(it.graphs()) }
+        history?.also { view?.onNewRates(it) }
     }
 
     private fun onRefused(error: AppError) {

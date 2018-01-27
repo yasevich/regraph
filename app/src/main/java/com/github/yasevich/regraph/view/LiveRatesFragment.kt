@@ -2,9 +2,9 @@ package com.github.yasevich.regraph.view
 
 import com.github.yasevich.regraph.App
 import com.github.yasevich.regraph.LiveRatesContract
+import com.github.yasevich.regraph.model.CurrencyRatesHistory
 import com.github.yasevich.regraph.util.async
 import com.github.yasevich.regraph.util.mainThread
-import com.github.yasevich.regraph.widget.LiveGraph
 
 class LiveRatesFragment: PresenterHolderFragment<LiveRatesContract.Presenter>() {
 
@@ -29,9 +29,9 @@ class LiveRatesFragment: PresenterHolderFragment<LiveRatesContract.Presenter>() 
         private class MainThreadWrappingView(private val view: LiveRatesContract.View) :
                 LiveRatesContract.View by view {
 
-            override fun onNewRates(graphs: List<LiveGraph>) {
+            override fun onNewRates(history: CurrencyRatesHistory) {
                 mainThread {
-                    view.onNewRates(graphs)
+                    view.onNewRates(history)
                 }
             }
 

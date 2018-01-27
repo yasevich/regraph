@@ -16,7 +16,7 @@ class LiveGraphSuite {
                 LiveGraphPoint(0.0, 0.0),
                 LiveGraphPoint(10.0, -14.0),
                 LiveGraphPoint(15.0, -11.0)
-        )).extremes
+        ), -0x1000000).extremes
         assertEquals(expected, actual)
     }
 }

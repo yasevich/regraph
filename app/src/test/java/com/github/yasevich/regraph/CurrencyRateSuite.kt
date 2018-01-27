@@ -1,7 +1,7 @@
 package com.github.yasevich.regraph
 
 import com.github.yasevich.regraph.model.CurrencyRate
-import com.github.yasevich.regraph.presenter.point
+import com.github.yasevich.regraph.view.point
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import java.math.BigDecimal

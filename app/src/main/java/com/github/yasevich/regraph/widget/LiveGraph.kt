@@ -1,6 +1,6 @@
 package com.github.yasevich.regraph.widget
 
-data class LiveGraph(val name: String, val points: List<LiveGraphPoint>) {
+data class LiveGraph(val name: String, val points: List<LiveGraphPoint>, val color: Int) {
 
     val extremes: Extremes by lazy {
         var minX = Double.MAX_VALUE
