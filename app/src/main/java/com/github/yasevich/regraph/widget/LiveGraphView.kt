@@ -12,6 +12,7 @@ import com.github.yasevich.regraph.GRAPH_FRAME_SIZE
 import com.github.yasevich.regraph.GRAPH_LINE_WIDTH_SP
 import com.github.yasevich.regraph.MIN_UPDATE_INTERVAL
 import com.github.yasevich.regraph.util.ceilTo
+import com.github.yasevich.regraph.util.floorTo
 
 class LiveGraphView @JvmOverloads constructor(
         context: Context,
@@ -33,13 +34,13 @@ class LiveGraphView @JvmOverloads constructor(
     }
 
     private val xScale: Double
-        get() = width.toDouble() / xRange
+        get() = width / xRange.toDouble()
     private val yScale: Double
-        get() = height / yTotal
+        get() = height / yRange
 
     private val xRange: Int = GRAPH_FRAME_SIZE
 
-    private var yTotal: Double = 10.0
+    private var yRange: Double = 10.0
 
     private var xShift: Double = 0.0
     private var yShift: Double = 0.0
@@ -91,8 +92,10 @@ class LiveGraphView @JvmOverloads constructor(
             }
         }
 
-        yTotal = (1.4 * Math.abs(maxY - minY)).ceilTo(1)
-        yShift = (minY - 0.2 * yTotal).ceilTo(1)
+        val m = 4.0
+        val delta = maxY - minY
+        yRange = ((1 + 2 / m) * delta).ceilTo(1)
+        yShift = (minY - delta / m).floorTo(1)
     }
 
     private fun drawFrame() {
@@ -120,7 +123,7 @@ class LiveGraphView @JvmOverloads constructor(
         while (iterator.hasNext()) {
             val point = iterator.next()
             val px = ((point.x - xShift - updates) * xScale).toFloat()
-            val py = ((point.y - yShift)* yScale).toFloat()
+            val py = ((point.y - yShift) * yScale).toFloat()
 
             if (path.isEmpty) {
                 path.moveTo(px, py)
