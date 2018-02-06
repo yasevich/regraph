@@ -5,14 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".view.LiveRatesActivity">
+    tools:context=".view.LiveRatesActivity"
+    tools:menu="activity_live_rates">
 
-    <Spinner
-        android:id="@+id/baseCurrencySelector"
-        android:layout_width="wrap_content"
+    <TextView
+        android:id="@+id/legend"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        tools:listitem="@android:layout/simple_dropdown_item_1line"/>
+        android:layout_margin="16dp"/>
 
     <com.github.yasevich.regraph.widget.LiveGraphView
         android:id="@+id/liveRates"

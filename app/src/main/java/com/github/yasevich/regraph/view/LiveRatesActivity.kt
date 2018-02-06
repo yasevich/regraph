@@ -4,16 +4,22 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
+import android.view.Menu
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.Spinner
 import android.widget.Toast
 import com.github.yasevich.regraph.LiveRatesContract
 import com.github.yasevich.regraph.R
 import com.github.yasevich.regraph.model.CurrencyRatesHistory
 import com.github.yasevich.regraph.util.PaletteColorPicker
 import com.github.yasevich.regraph.util.showToast
-import kotlinx.android.synthetic.main.activity_live_rates.baseCurrencySelector
+import kotlinx.android.synthetic.main.activity_live_rates.legend
 import kotlinx.android.synthetic.main.activity_live_rates.liveRates
 
 private const val TAG_FRAGMENT_LIVE_RATES = "liveRatesFragment"
@@ -30,12 +36,12 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
     private val colorMap: CurrencyColorMap = CurrencyColorMapImpl(PaletteColorPicker())
 
     private lateinit var fragment: LiveRatesFragment
+    private lateinit var spinner: Spinner
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_live_rates)
         setTitle(R.string.app_live_rates_title)
-        prepareViews()
 
         if (savedInstanceState == null) {
             fragment = LiveRatesFragment()
@@ -51,13 +57,22 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
         presenter.startUpdates()
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        super.onCreateOptionsMenu(menu)
+        menuInflater.inflate(R.menu.activity_live_rates, menu)
+        spinner = menu.findItem(R.id.baseCurrency).actionView as Spinner
+        spinner.adapter = adapter
+        spinner.onItemSelectedListener = this
+        return true
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         presenter.stopUpdates()
     }
 
     override fun onBaseCurrency(baseIndex: Int) {
-        baseCurrencySelector.setSelection(baseIndex)
+        spinner.setSelection(baseIndex)
     }
 
     override fun onCurrencies(currencies: List<String>) {
@@ -65,6 +80,12 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
             clear()
             addAll(currencies)
         }
+
+        legend.text = currencies.fold(SpannableStringBuilder()) {
+            acc, item -> acc.append(SpannableString(item).apply {
+                setSpan(ForegroundColorSpan(colorMap.getColor(item)), 0, item.length, Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
+            } ).append(' ')
+        }.trim()
     }
 
     override fun onNewRates(history: CurrencyRatesHistory) {
@@ -81,11 +102,6 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
         setBaseCurrency(position)
-    }
-
-    private fun prepareViews() {
-        baseCurrencySelector.adapter = adapter
-        baseCurrencySelector.onItemSelectedListener = this
     }
 
     private fun setBaseCurrency(position: Int) {
