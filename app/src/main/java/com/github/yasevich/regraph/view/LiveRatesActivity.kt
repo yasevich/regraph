@@ -45,16 +45,18 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
 
         if (savedInstanceState == null) {
             fragment = LiveRatesFragment()
+            fragment.arguments = intent.extras
             supportFragmentManager.beginTransaction()
                     .add(fragment, TAG_FRAGMENT_LIVE_RATES)
                     .commit()
-            presenter.setCurrencies(intent.getStringArrayExtra(EXTRA_CURRENCIES).toList())
         } else {
             fragment = supportFragmentManager.findFragmentByTag(TAG_FRAGMENT_LIVE_RATES) as LiveRatesFragment
         }
 
-        presenter.view = this
-        presenter.startUpdates()
+        with(presenter) {
+            view = this@LiveRatesActivity
+            startUpdates()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -110,11 +112,11 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
 
     companion object {
 
-        private const val EXTRA_CURRENCIES = "rates"
+        const val EXTRA_CURRENCIES = "currencies"
 
         fun intent(context: Context, currencies: List<String>): Intent {
             return Intent(context, LiveRatesActivity::class.java)
-                    .putExtra(EXTRA_CURRENCIES, currencies.toTypedArray())
+                    .putExtra(EXTRA_CURRENCIES, ArrayList(currencies))
         }
     }
 }

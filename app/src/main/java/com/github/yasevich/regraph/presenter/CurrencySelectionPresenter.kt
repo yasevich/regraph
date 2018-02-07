@@ -6,6 +6,7 @@ import com.github.yasevich.regraph.model.AppError
 import com.github.yasevich.regraph.model.AppStatus
 import com.github.yasevich.regraph.repository.CurrencyRateRepository
 import com.github.yasevich.regraph.repository.RepositoryResponse
+import com.github.yasevich.regraph.util.PaletteColorPicker
 
 class CurrencySelectionPresenter(private val repository: CurrencyRateRepository) : CurrencySelectionContract.Presenter {
 
@@ -49,6 +50,15 @@ class CurrencySelectionPresenter(private val repository: CurrencyRateRepository)
 
     override fun showGraph() {
         view?.onShowGraph(selectedCurrencies)
+    }
+
+    override fun saveState(state: CurrencySelectionContract.ViewState) {
+        state.selectedCurrencies = selectedCurrencies
+    }
+
+    override fun restoreState(state: CurrencySelectionContract.ViewState) {
+        selectedCurrencies.clear()
+        state.selectedCurrencies.forEach(this::addSelectedCurrency)
     }
 
     private fun handle(response: RepositoryResponse<List<String>>) {
@@ -95,6 +105,7 @@ class CurrencySelectionPresenter(private val repository: CurrencyRateRepository)
     }
 
     private fun onSelectedCurrencies() {
-        view?.onCurrenciesSelection(selectedCurrencies.size >= 2)
+        val size = selectedCurrencies.size
+        view?.onCurrenciesSelection(size >= 2 && size <= PaletteColorPicker.paletteSize)
     }
 }

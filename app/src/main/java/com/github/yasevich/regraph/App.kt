@@ -21,7 +21,8 @@ class App : Application() {
 
     fun createCurrencySelectionPresenter(): CurrencySelectionContract.Presenter = CurrencySelectionPresenter(repository)
 
-    fun createLiveRatesPresenter(): LiveRatesContract.Presenter = LiveRatesPresenter(repository)
+    fun createLiveRatesPresenter(currencies: List<String>): LiveRatesContract.Presenter =
+            LiveRatesPresenter(repository, currencies)
 
     companion object {
         lateinit var instance: App

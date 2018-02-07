@@ -13,7 +13,10 @@ import com.github.yasevich.regraph.repository.RepositoryResponse
 import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
 
-class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRatesContract.Presenter {
+class LiveRatesPresenter(
+        private val repository: CurrencyRateRepository,
+        private val currencies: List<String>
+): LiveRatesContract.Presenter {
 
     override var view: LiveRatesContract.View? = null
         set(value) {
@@ -27,18 +30,9 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
         get() = currencies.indexOf(baseCurrency)
 
     private var history: CurrencyRatesHistory? = null
-
-    private lateinit var baseCurrency: String
-    private lateinit var currencies: List<String>
+    private var baseCurrency: String = currencies[0]
 
     private var timer: Timer? = null
-
-    override fun setCurrencies(currencies: List<String>) {
-        this.currencies = currencies
-        this.baseCurrency = currencies[0]
-
-        onCurrencies()
-    }
 
     override fun setBaseCurrency(baseCurrency: String) {
         if (currencies.contains(baseCurrency)) {
@@ -67,6 +61,14 @@ class LiveRatesPresenter(private val repository: CurrencyRateRepository): LiveRa
 
     override fun stopUpdates() {
         timer?.cancel()
+    }
+
+    override fun saveState(state: LiveRatesContract.ViewState) {
+        state.baseCurrency = baseCurrency
+    }
+
+    override fun restoreState(state: LiveRatesContract.ViewState) {
+        setBaseCurrency(state.baseCurrency)
     }
 
     private fun onView() {
