@@ -123,7 +123,7 @@ class LiveGraphView @JvmOverloads constructor(
         while (iterator.hasNext()) {
             val point = iterator.next()
             val px = ((point.x - xShift - updates) * xScale).toFloat()
-            val py = ((point.y - yShift) * yScale).toFloat()
+            val py = (height - (point.y - yShift) * yScale).toFloat()
 
             if (path.isEmpty) {
                 path.moveTo(px, py)
