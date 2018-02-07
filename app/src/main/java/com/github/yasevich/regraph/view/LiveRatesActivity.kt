@@ -35,6 +35,8 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
 
     private val colorMap: CurrencyColorMap = CurrencyColorMapImpl(PaletteColorPicker())
 
+    private var baseIndex: Int = 0
+
     private lateinit var fragment: LiveRatesFragment
     private lateinit var spinner: Spinner
 
@@ -64,6 +66,7 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
         menuInflater.inflate(R.menu.activity_live_rates, menu)
         spinner = menu.findItem(R.id.baseCurrency).actionView as Spinner
         spinner.adapter = adapter
+        spinner.setSelection(baseIndex)
         spinner.onItemSelectedListener = this
         return true
     }
@@ -74,14 +77,18 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
     }
 
     override fun onBaseCurrency(baseIndex: Int) {
-        spinner.setSelection(baseIndex)
+        this.baseIndex = baseIndex
+        if (::spinner.isInitialized) {
+            spinner.setSelection(baseIndex)
+        }
     }
 
-    override fun onCurrencies(currencies: List<String>) {
+    override fun onCurrencies(currencies: List<String>, baseIndex: Int) {
         with(adapter) {
             clear()
             addAll(currencies)
         }
+        onBaseCurrency(baseIndex)
 
         legend.text = currencies.fold(SpannableStringBuilder()) {
             acc, item -> acc.append(SpannableString(item).apply {

@@ -92,7 +92,7 @@ class LiveRatesPresenter(
     }
 
     private fun onCurrencies() {
-        view?.onCurrencies(currencies)
+        view?.onCurrencies(currencies, baseCurrencyIndex)
     }
 
     private fun onNewRates() {

@@ -9,7 +9,7 @@ interface LiveRatesContract {
 
     interface View : BaseView {
         fun onBaseCurrency(baseIndex: Int)
-        fun onCurrencies(currencies: List<String>)
+        fun onCurrencies(currencies: List<String>, baseIndex: Int)
         fun onNewRates(history: CurrencyRatesHistory)
         fun onError(textResId: Int)
     }
