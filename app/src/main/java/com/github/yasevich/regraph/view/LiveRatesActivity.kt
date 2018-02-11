@@ -7,12 +7,11 @@ import android.support.v7.app.AppCompatActivity
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
+import android.text.TextPaint
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
-import android.view.Menu
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Spinner
 import android.widget.Toast
 import com.github.yasevich.regraph.LiveRatesContract
 import com.github.yasevich.regraph.R
@@ -24,26 +23,23 @@ import kotlinx.android.synthetic.main.activity_live_rates.liveRates
 
 private const val TAG_FRAGMENT_LIVE_RATES = "liveRatesFragment"
 
-class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterView.OnItemSelectedListener {
-
-    private val adapter: ArrayAdapter<String> by lazy {
-        ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item)
-                .apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
-    }
+class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View {
 
     private val presenter: LiveRatesContract.Presenter by lazy { fragment.presenter }
 
     private val colorMap: CurrencyColorMap = CurrencyColorMapImpl(PaletteColorPicker())
+    private val currencies: MutableList<String> = mutableListOf()
 
     private var baseIndex: Int = 0
 
     private lateinit var fragment: LiveRatesFragment
-    private lateinit var spinner: Spinner
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_live_rates)
         setTitle(R.string.app_live_rates_title)
+
+        legend.movementMethod = LinkMovementMethod.getInstance()
 
         if (savedInstanceState == null) {
             fragment = LiveRatesFragment()
@@ -61,16 +57,6 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        super.onCreateOptionsMenu(menu)
-        menuInflater.inflate(R.menu.activity_live_rates, menu)
-        spinner = menu.findItem(R.id.baseCurrency).actionView as Spinner
-        spinner.adapter = adapter
-        spinner.setSelection(baseIndex)
-        spinner.onItemSelectedListener = this
-        return true
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         presenter.stopUpdates()
@@ -78,23 +64,22 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
 
     override fun onBaseCurrency(baseIndex: Int) {
         this.baseIndex = baseIndex
-        if (::spinner.isInitialized) {
-            spinner.setSelection(baseIndex)
-        }
+        legend.text = currencies.foldIndexed(SpannableStringBuilder()) { index, acc, item ->
+            acc.append(SpannableString(item).apply {
+                setSpan(CurrencyClickableSpan(presenter, item, index == baseIndex),
+                        0, item.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                setSpan(ForegroundColorSpan(colorMap.getColor(item)),
+                        0, item.length, Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
+            }).append(' ')
+        }.trim()
     }
 
     override fun onCurrencies(currencies: List<String>, baseIndex: Int) {
-        with(adapter) {
+        with(this.currencies) {
             clear()
             addAll(currencies)
         }
         onBaseCurrency(baseIndex)
-
-        legend.text = currencies.fold(SpannableStringBuilder()) {
-            acc, item -> acc.append(SpannableString(item).apply {
-                setSpan(ForegroundColorSpan(colorMap.getColor(item)), 0, item.length, Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
-            } ).append(' ')
-        }.trim()
     }
 
     override fun onNewRates(history: CurrencyRatesHistory) {
@@ -105,18 +90,6 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
         showToast(textResId, Toast.LENGTH_SHORT)
     }
 
-    override fun onNothingSelected(parent: AdapterView<*>?) {
-        setBaseCurrency(0)
-    }
-
-    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        setBaseCurrency(position)
-    }
-
-    private fun setBaseCurrency(position: Int) {
-        presenter.setBaseCurrency(adapter.getItem(position))
-    }
-
     companion object {
 
         const val EXTRA_CURRENCIES = "currencies"
@@ -124,6 +97,21 @@ class LiveRatesActivity : AppCompatActivity(), LiveRatesContract.View, AdapterVi
         fun intent(context: Context, currencies: List<String>): Intent {
             return Intent(context, LiveRatesActivity::class.java)
                     .putExtra(EXTRA_CURRENCIES, ArrayList(currencies))
+        }
+    }
+
+    private class CurrencyClickableSpan(
+            private val presenter: LiveRatesContract.Presenter,
+            private val currency: String,
+            private val base: Boolean
+    ) : ClickableSpan() {
+
+        override fun onClick(widget: View) {
+            presenter.setBaseCurrency(currency)
+        }
+
+        override fun updateDrawState(ds: TextPaint) {
+            ds.isUnderlineText = base
         }
     }
 }
