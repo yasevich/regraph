@@ -102,7 +102,7 @@ class LiveRatesPresenter(
     private fun onRefused(error: AppError) {
         val textResId = when (error) {
             AppError.INVALID_CURRENCY -> R.string.app_error_invalid_currency
-            AppError.TECHNICAL_ERROR -> R.string.app_error_technical_error
+            else -> R.string.app_error_technical_error
         }
         view?.onError(textResId)
     }

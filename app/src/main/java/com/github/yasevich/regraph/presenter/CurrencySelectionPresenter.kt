@@ -36,6 +36,11 @@ class CurrencySelectionPresenter(private val repository: CurrencyRateRepository)
     }
 
     override fun addSelectedCurrency(currency: String) {
+        if (selectedCurrencies.size == PaletteColorPicker.paletteSize - 1) {
+            onRefused(AppError.TOO_MANY_CURRENCIES)
+            return
+        }
+
         if (!selectedCurrencies.contains(currency)) {
             selectedCurrencies.add(currency)
             onSelectionChanged(currency)
@@ -95,6 +100,7 @@ class CurrencySelectionPresenter(private val repository: CurrencyRateRepository)
         val resId = when (error) {
             AppError.INVALID_CURRENCY -> R.string.app_error_invalid_currency
             AppError.TECHNICAL_ERROR -> R.string.app_error_technical_error
+            AppError.TOO_MANY_CURRENCIES -> R.string.app_error_too_many_currencies
         }
         view?.onError(resId)
     }

@@ -59,8 +59,11 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
         }
     }
 
-    override fun getRates(baseCurrency: String?, currencies: Set<String>?, timestamp: Long?):
-            RepositoryResponse<CurrencyRates> {
+    override fun getRates(
+            baseCurrency: String?,
+            currencies: Set<String>?,
+            timestamp: Long?
+    ): RepositoryResponse<CurrencyRates> {
 
         val ts = timestamp ?: currentTimeSeconds()
         val day = secondsAtStartOfDay(ts)
@@ -97,8 +100,11 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
         return RepositoryResponse.success(createList(rates.toMutableMap(), baseCurrency, rawRates.second))
     }
 
-    override fun getHistory(baseCurrency: String?, currencies: Set<String>?, timestampRange: LongRange?):
-            RepositoryResponse<CurrencyRatesHistory> {
+    override fun getHistory(
+            baseCurrency: String?,
+            currencies: Set<String>?,
+            timestampRange: LongRange?
+    ): RepositoryResponse<CurrencyRatesHistory> {
 
         val history = CurrencyRatesHistory(RATES_HISTORY_SIZE)
         (timestampRange ?: defaultTimestampRange)
