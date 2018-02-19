@@ -1,5 +1,6 @@
 package com.github.yasevich.regraph.widget
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -13,6 +14,8 @@ import com.github.yasevich.regraph.GRAPH_LINE_WIDTH_SP
 import com.github.yasevich.regraph.MIN_UPDATE_INTERVAL
 import com.github.yasevich.regraph.util.ceilTo
 import com.github.yasevich.regraph.util.floorTo
+import com.github.yasevich.regraph.util.getValue
+import com.github.yasevich.regraph.util.setValue
 
 class LiveGraphView @JvmOverloads constructor(
         context: Context,
@@ -36,14 +39,16 @@ class LiveGraphView @JvmOverloads constructor(
     private val xScale: Double
         get() = width / xRange.toDouble()
     private val yScale: Double
-        get() = height / yRange
+        get() = height / yRange.toDouble()
 
     private val xRange: Int = GRAPH_FRAME_SIZE
-
-    private var yRange: Double = 10.0
-
     private var xShift: Double = 0.0
-    private var yShift: Double = 0.0
+
+    private var yRange: Float = 10f
+    private var yShift: Float = 0f
+
+    private var yRangeAnimator: ValueAnimator? = null
+    private var yShiftAnimator: ValueAnimator? = null
 
     private var graphs: List<LiveGraph> = emptyList()
 
@@ -56,6 +61,12 @@ class LiveGraphView @JvmOverloads constructor(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         drawFrame()
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        yRangeAnimator?.cancel()
+        yShiftAnimator?.cancel()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -94,8 +105,9 @@ class LiveGraphView @JvmOverloads constructor(
 
         val m = 4.0
         val delta = maxY - minY
-        yRange = ((1 + 2 / m) * delta).ceilTo(1)
-        yShift = (minY - delta / m).floorTo(1)
+
+        animateYRange(((1 + 2 / m) * delta).ceilTo(1).toFloat())
+        animateYShift((minY - delta / m).floorTo(1).toFloat())
     }
 
     private fun drawFrame() {
@@ -111,6 +123,32 @@ class LiveGraphView @JvmOverloads constructor(
         graph.drawLineOn(path)
         paint.color = graph.color
         canvas.drawPath(path, paint)
+    }
+
+    private fun animateYRange(newYRange: Float) {
+        animateFloatProperty(object : FloatProperty {
+            override var valueAnimator: ValueAnimator? by ::yRangeAnimator
+            override var value: Float by ::yRange
+        }, newYRange)
+    }
+
+    private fun animateYShift(newYShift: Float) {
+        animateFloatProperty(object : FloatProperty {
+            override var valueAnimator: ValueAnimator? by ::yShiftAnimator
+            override var value: Float by ::yShift
+        }, newYShift)
+    }
+
+    private fun animateFloatProperty(property: FloatProperty, newValue: Float) {
+        val oldValue = property.value
+        if (oldValue == newValue) return
+
+        property.valueAnimator?.cancel()
+        property.valueAnimator = ValueAnimator.ofFloat(oldValue, newValue).apply {
+            duration = 500L
+            addUpdateListener { property.value = it.animatedValue as Float }
+            start()
+        }
     }
 
     private fun LiveGraph.getXShift(): Double {
@@ -131,5 +169,10 @@ class LiveGraphView @JvmOverloads constructor(
                 path.lineTo(px, py)
             }
         }
+    }
+
+    private interface FloatProperty {
+        var valueAnimator: ValueAnimator?
+        var value: Float
     }
 }
