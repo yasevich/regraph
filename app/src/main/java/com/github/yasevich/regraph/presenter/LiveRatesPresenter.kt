@@ -10,6 +10,7 @@ import com.github.yasevich.regraph.model.CurrencyRates
 import com.github.yasevich.regraph.model.CurrencyRatesHistory
 import com.github.yasevich.regraph.repository.CurrencyRateRepository
 import com.github.yasevich.regraph.repository.RepositoryResponse
+import com.github.yasevich.regraph.util.currentTimeSeconds
 import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
 
@@ -54,8 +55,10 @@ class LiveRatesPresenter(
         }
         onNewRates()
 
-        timer = fixedRateTimer(initialDelay = UPDATES_RATE_MS, period = UPDATES_RATE_MS) {
-            handle(repository.getRates(baseCurrency, currencies.toSet()))
+        timer = fixedRateTimer(period = UPDATES_RATE_MS) {
+            if (history?.items?.lastOrNull()?.timestamp != currentTimeSeconds()) {
+                handle(repository.getRates(baseCurrency, currencies.toSet()))
+            }
         }
     }
 

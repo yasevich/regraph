@@ -64,8 +64,8 @@ class FixerIoCurrencyRateRepository : CurrencyRateRepository {
 private interface FixerIoBackend {
     @GET("latest")
     fun latest(
-            @Query("currencyBase") currencyBase: String? = null,
-            @Query("currencies") currencies: String? = null
+            @Query("base") currencyBase: String? = null,
+            @Query("symbols") currencies: String? = null
     ): Call<Latest>
 }
 

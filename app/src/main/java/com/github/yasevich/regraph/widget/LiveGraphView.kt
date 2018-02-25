@@ -50,6 +50,9 @@ class LiveGraphView @JvmOverloads constructor(
     private var yRangeAnimator: ValueAnimator? = null
     private var yShiftAnimator: ValueAnimator? = null
 
+    private var yRangeAnimatingTo: Float? = null
+    private var yShiftAnimatingTo: Float? = null
+
     private var graphs: List<LiveGraph> = emptyList()
 
     private var updates: Double = 0.0
@@ -91,6 +94,8 @@ class LiveGraphView @JvmOverloads constructor(
     }
 
     private fun calculateRestrictions(extremes: List<LiveGraph.Extremes>) {
+        if (extremes.isEmpty()) return
+
         var minY = Double.MAX_VALUE
         var maxY = - minY
 
@@ -106,8 +111,13 @@ class LiveGraphView @JvmOverloads constructor(
         val m = 4.0
         val delta = maxY - minY
 
-        animateYRange(((1 + 2 / m) * delta).ceilTo(1).toFloat())
-        animateYShift((minY - delta / m).floorTo(1).toFloat())
+        val yRangeCandidate = ((1 + 2 / m) * delta).ceilTo(1).toFloat()
+        val yShiftCandidate = (minY - delta / m).floorTo(1).toFloat()
+
+        val newYRange = if (yRangeCandidate + yShiftCandidate <= maxY) yRangeCandidate * 1.1f else yRangeCandidate
+
+        animateYRange(newYRange)
+        animateYShift(yShiftCandidate)
     }
 
     private fun drawFrame() {
@@ -127,22 +137,25 @@ class LiveGraphView @JvmOverloads constructor(
 
     private fun animateYRange(newYRange: Float) {
         animateFloatProperty(object : FloatProperty {
-            override var valueAnimator: ValueAnimator? by ::yRangeAnimator
             override var value: Float by ::yRange
+            override var valueAnimator: ValueAnimator? by ::yRangeAnimator
+            override var animatesTo: Float? by ::yRangeAnimatingTo
         }, newYRange)
     }
 
     private fun animateYShift(newYShift: Float) {
         animateFloatProperty(object : FloatProperty {
-            override var valueAnimator: ValueAnimator? by ::yShiftAnimator
             override var value: Float by ::yShift
+            override var valueAnimator: ValueAnimator? by ::yShiftAnimator
+            override var animatesTo: Float? by ::yShiftAnimatingTo
         }, newYShift)
     }
 
     private fun animateFloatProperty(property: FloatProperty, newValue: Float) {
         val oldValue = property.value
-        if (oldValue == newValue) return
+        if (oldValue == newValue || property.animatesTo == newValue) return
 
+        property.animatesTo = newValue
         property.valueAnimator?.cancel()
         property.valueAnimator = ValueAnimator.ofFloat(oldValue, newValue).apply {
             duration = 500L
@@ -172,7 +185,8 @@ class LiveGraphView @JvmOverloads constructor(
     }
 
     private interface FloatProperty {
-        var valueAnimator: ValueAnimator?
         var value: Float
+        var valueAnimator: ValueAnimator?
+        var animatesTo: Float?
     }
 }
