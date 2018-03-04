@@ -68,8 +68,8 @@ class CurrencySelectionPresenter(private val repository: CurrencyRateRepository)
 
     private fun handle(response: RepositoryResponse<List<String>>) {
         when (response.status) {
-            AppStatus.SUCCESS -> setCurrencies(response.result!!)
-            AppStatus.REFUSED -> onRefused(response.error!!)
+            AppStatus.SUCCESS -> setCurrencies(response.result)
+            AppStatus.REFUSED -> onRefused(response.error)
         }
     }
 
@@ -98,6 +98,7 @@ class CurrencySelectionPresenter(private val repository: CurrencyRateRepository)
 
     private fun onRefused(error: AppError) {
         val resId = when (error) {
+            AppError.NO_INTERNET_CONNECTION -> R.string.app_error_no_internet_connection
             AppError.INVALID_CURRENCY -> R.string.app_error_invalid_currency
             AppError.TECHNICAL_ERROR -> R.string.app_error_technical_error
             AppError.TOO_MANY_CURRENCIES -> R.string.app_error_too_many_currencies

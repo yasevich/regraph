@@ -14,8 +14,6 @@ import com.github.yasevich.regraph.GRAPH_LINE_WIDTH_SP
 import com.github.yasevich.regraph.MIN_UPDATE_INTERVAL
 import com.github.yasevich.regraph.util.ceilTo
 import com.github.yasevich.regraph.util.floorTo
-import com.github.yasevich.regraph.util.getValue
-import com.github.yasevich.regraph.util.setValue
 
 class LiveGraphView @JvmOverloads constructor(
         context: Context,
@@ -49,9 +47,6 @@ class LiveGraphView @JvmOverloads constructor(
 
     private var yRangeAnimator: ValueAnimator? = null
     private var yShiftAnimator: ValueAnimator? = null
-
-    private var yRangeAnimatingTo: Float? = null
-    private var yShiftAnimatingTo: Float? = null
 
     private var graphs: List<LiveGraph> = emptyList()
 
@@ -111,13 +106,11 @@ class LiveGraphView @JvmOverloads constructor(
         val m = 4.0
         val delta = maxY - minY
 
-        val yRangeCandidate = ((1 + 2 / m) * delta).ceilTo(1).toFloat()
-        val yShiftCandidate = (minY - delta / m).floorTo(1).toFloat()
-
-        val newYRange = if (yRangeCandidate + yShiftCandidate <= maxY) yRangeCandidate * 1.1f else yRangeCandidate
-
-        animateYRange(newYRange)
-        animateYShift(yShiftCandidate)
+        yShift = (minY - delta / m).floorTo(1).toFloat()
+        yRange = ((1 + 2 / m) * delta).ceilTo(1).toFloat()
+        if (yRange + yShift <= maxY) {
+            yRange *= 1.1f
+        }
     }
 
     private fun drawFrame() {
@@ -133,35 +126,6 @@ class LiveGraphView @JvmOverloads constructor(
         graph.drawLineOn(path)
         paint.color = graph.color
         canvas.drawPath(path, paint)
-    }
-
-    private fun animateYRange(newYRange: Float) {
-        animateFloatProperty(object : FloatProperty {
-            override var value: Float by ::yRange
-            override var valueAnimator: ValueAnimator? by ::yRangeAnimator
-            override var animatesTo: Float? by ::yRangeAnimatingTo
-        }, newYRange)
-    }
-
-    private fun animateYShift(newYShift: Float) {
-        animateFloatProperty(object : FloatProperty {
-            override var value: Float by ::yShift
-            override var valueAnimator: ValueAnimator? by ::yShiftAnimator
-            override var animatesTo: Float? by ::yShiftAnimatingTo
-        }, newYShift)
-    }
-
-    private fun animateFloatProperty(property: FloatProperty, newValue: Float) {
-        val oldValue = property.value
-        if (oldValue == newValue || property.animatesTo == newValue) return
-
-        property.animatesTo = newValue
-        property.valueAnimator?.cancel()
-        property.valueAnimator = ValueAnimator.ofFloat(oldValue, newValue).apply {
-            duration = 500L
-            addUpdateListener { property.value = it.animatedValue as Float }
-            start()
-        }
     }
 
     private fun LiveGraph.getXShift(): Double {

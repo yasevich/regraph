@@ -36,6 +36,8 @@ class LiveRatesPresenter(
     private var timer: Timer? = null
 
     override fun setBaseCurrency(baseCurrency: String) {
+        if (this.baseCurrency == baseCurrency) return
+
         if (currencies.contains(baseCurrency)) {
             this.baseCurrency = baseCurrency
             this.history?.rebase(baseCurrency)
@@ -80,8 +82,8 @@ class LiveRatesPresenter(
 
     private fun handle(response: RepositoryResponse<CurrencyRates>) {
         when (response.status) {
-            AppStatus.SUCCESS -> addRates(response.result!!)
-            AppStatus.REFUSED -> onRefused(response.error!!)
+            AppStatus.SUCCESS -> addRates(response.result)
+            AppStatus.REFUSED -> onRefused(response.error)
         }
     }
 

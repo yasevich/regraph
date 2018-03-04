@@ -111,8 +111,8 @@ class AssetCurrencyRateRepository(context: Context) : CurrencyRateRepository {
                 .map { getRates(baseCurrency, currencies, it) }
                 .forEach {
                     when (it.status) {
-                        AppStatus.SUCCESS -> history.add(it.result!!)
-                        AppStatus.REFUSED -> return RepositoryResponse.error(it.error!!)
+                        AppStatus.SUCCESS -> history.add(it.result)
+                        AppStatus.REFUSED -> return RepositoryResponse.error(it.error)
                     }
                 }
         return RepositoryResponse.success(history)

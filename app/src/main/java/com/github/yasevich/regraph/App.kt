@@ -5,15 +5,15 @@ import android.os.Handler
 import android.os.Looper
 import com.github.yasevich.regraph.presenter.CurrencySelectionPresenter
 import com.github.yasevich.regraph.presenter.LiveRatesPresenter
-import com.github.yasevich.regraph.repository.AssetCurrencyRateRepository
 import com.github.yasevich.regraph.repository.CurrencyRateRepository
+import com.github.yasevich.regraph.repository.FixerIoCurrencyRateRepository
 
 class App : Application() {
 
     val handler: Handler by lazy { Handler(Looper.getMainLooper()) }
 
-    private val repository: CurrencyRateRepository by lazy { AssetCurrencyRateRepository(this) }
-    // private val repository: CurrencyRateRepository by lazy { FixerIoCurrencyRateRepository() }
+    // private val repository: CurrencyRateRepository by lazy { AssetCurrencyRateRepository(this) }
+    private val repository: CurrencyRateRepository by lazy { FixerIoCurrencyRateRepository() }
 
     override fun onCreate() {
         super.onCreate()

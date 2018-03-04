@@ -7,6 +7,7 @@
 
     <string name="app_live_rates_title">Base currency</string>
 
+    <string name="app_error_no_internet_connection">Something is wrong. Check the internet connection.</string>
     <string name="app_error_invalid_currency">Invalid base currency is selected.</string>
     <string name="app_error_technical_error">Technical error. Something went wrong.</string>
     <string name="app_error_too_many_currencies">You\'ve selected the max number of currencies.</string>
